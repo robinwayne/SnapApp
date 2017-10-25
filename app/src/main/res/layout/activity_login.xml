@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.antoinemaguet.snapapp.login">
+
+    <TextView
+        android:id="@+id/Header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/textHeader"
+        android:textColor="#FFFF"
+        android:textAlignment="center"
+        android:textSize="35dp"
+        android:height="60dp"
+        android:background="#A52A2A"
+        />
+
+    <ScrollView
+        android:layout_below="@+id/Header"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/Content"
+        android:layout_above="@+id/Footer">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/Username"
+                android:textColor="#A52A2A"
+                android:textSize="30dp"
+                android:layout_marginTop="20dp"
+
+                />
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:id="@+id/usernameEdit"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/Password"
+                android:textColor="#A52A2A"
+                android:textSize="30dp"
+                android:layout_marginTop="20dp"
+
+                />
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:id="@+id/passwordEdit"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                />
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="45dp"
+                android:visibility="invisible"
+                />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/Footer"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal">
+
+        <Button
+            android:layout_weight="1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Submit"
+            android:id="@+id/submitBtn"
+            android:height="60dp"
+            android:textColor="#FFFF"
+            android:background="#A52A2A"
+            />
+
+        <Button
+            android:layout_weight="0.62"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Clear"
+            android:textColor="#FFFF"
+            android:id="@+id/resetBtn"
+            android:height="60dp"
+            android:background="#A52A2A"
+
+            />
+    </LinearLayout>
+
+</RelativeLayout>
+
