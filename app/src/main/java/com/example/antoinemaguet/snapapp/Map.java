@@ -14,7 +14,7 @@ import com.mapbox.mapboxsdk.maps.MapView;
 
 public class Map extends FragmentActivity {
 
-    private static final int NUM_PAGES = 2;
+    private static final int NUM_PAGES = 3;
     private PagerAdapter mPagerAdapter;
     private ViewPager vPager;
 
@@ -58,8 +58,10 @@ public class Map extends FragmentActivity {
                     return new mapView();
                 case 1:
                     return new picture();
+                case 2:
+                    return new list();
                 default:
-                    return new mapView();
+                    return new picture();
             }
         }
 
