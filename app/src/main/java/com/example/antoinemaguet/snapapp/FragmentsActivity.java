@@ -8,7 +8,7 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 
-public class Map extends FragmentActivity {
+public class FragmentsActivity extends FragmentActivity {
 
     private static final int NUM_PAGES = 3;
     private PagerAdapter mPagerAdapter;
@@ -17,7 +17,7 @@ public class Map extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_map); // The view
+        setContentView(R.layout.activity_fragments_activity); // The view
 
         // Instantiate a ViewPager and a PagerAdapter.
         vPager = (ViewPager) findViewById(R.id.viewpager);
@@ -52,11 +52,11 @@ public class Map extends FragmentActivity {
         public Fragment getItem(int position) {
             switch(position){
                 case 0:
-                    return new StoryView();
+                    return new MapFragment();
                 case 1:
                     return new picture();
                 case 2:
-                    return new list();
+                    return new StoryFragment();
                 default:
                     return new picture();
             }

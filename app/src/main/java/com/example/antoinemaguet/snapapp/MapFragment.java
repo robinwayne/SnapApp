@@ -31,7 +31,7 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
 
-public class StoryView extends Fragment implements GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener{
+public class MapFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener{
 
     private GoogleApiClient googleApiClient;
     private MapView mapView;
@@ -73,7 +73,7 @@ public class StoryView extends Fragment implements GoogleApiClient.ConnectionCal
         if (ContextCompat.checkSelfPermission(getContext(), ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             LocationManager mLocationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
 
-            //MapLocationListener mLocationListener = new MapLocationListener(StoryView);
+            //MapLocationListener mLocationListener = new MapLocationListener(MapFragment);
             //mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 5, mLocationListener);
 
         }

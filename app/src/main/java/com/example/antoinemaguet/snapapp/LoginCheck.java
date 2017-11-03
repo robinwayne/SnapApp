@@ -9,14 +9,14 @@ import android.widget.ProgressBar;
  * Created by antoinemaguet on 03/11/2017.
  */
 
-public class LoginTask extends AsyncTask<Void, Void, Boolean> {
+public class LoginCheck extends AsyncTask<Void, Void, Boolean> {
 
     private String username;
     private String password;
     private final LoginListener loginListener;
     private final ProgressBar progressBar;
 
-    LoginTask(String username, String password, ProgressBar progress, LoginListener loginListener) {
+    LoginCheck(String username, String password, ProgressBar progress, LoginListener loginListener) {
         this.username=username;
         this.password=password;
         this.loginListener=loginListener;

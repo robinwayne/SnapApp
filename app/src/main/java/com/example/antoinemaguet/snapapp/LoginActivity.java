@@ -9,7 +9,7 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-public class login extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,10 +24,10 @@ public class login extends AppCompatActivity {
         submitBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new LoginTask( usernameEdit.getText().toString(),passwordEdit.getText().toString(),(ProgressBar)findViewById(R.id.progressBar),new LoginTask.LoginListener() {
+                new LoginCheck( usernameEdit.getText().toString(),passwordEdit.getText().toString(),(ProgressBar)findViewById(R.id.progressBar),new LoginCheck.LoginListener() {
                     @Override
                     public void OnSuccess() {
-                        Intent intent = new Intent(login.this, Map.class);
+                        Intent intent = new Intent(LoginActivity.this, FragmentsActivity.class);
                         startActivity(intent);
                     }
                     public void OnFailure(){
@@ -43,7 +43,7 @@ public class login extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                Toast.makeText(login.this, "Clear Inputs", Toast.LENGTH_LONG).show();
+                Toast.makeText(LoginActivity.this, "Clear Inputs", Toast.LENGTH_LONG).show();
                 usernameEdit.setText("");
                 passwordEdit.setText("");
             }
