@@ -6,11 +6,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-
-import com.mapbox.mapboxsdk.Mapbox;
-import com.mapbox.mapboxsdk.maps.MapView;
 
 public class Map extends FragmentActivity {
 
@@ -42,6 +38,7 @@ public class Map extends FragmentActivity {
         }
     }
 
+
     /**
      * A simple pager adapter that represents 5 ScreenSlidePageFragment objects, in
      * sequence.
@@ -55,7 +52,7 @@ public class Map extends FragmentActivity {
         public Fragment getItem(int position) {
             switch(position){
                 case 0:
-                    return new mapView();
+                    return new StoryView();
                 case 1:
                     return new picture();
                 case 2:

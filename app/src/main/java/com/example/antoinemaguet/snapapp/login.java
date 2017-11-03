@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 public class login extends AppCompatActivity {
@@ -23,11 +24,17 @@ public class login extends AppCompatActivity {
         submitBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//               new LoginTask.execute(
-//                       .usernameEdit
-//             );
-                Intent intent = new Intent(login.this, Map.class);
-                startActivity(intent);
+                new LoginTask( usernameEdit.getText().toString(),passwordEdit.getText().toString(),(ProgressBar)findViewById(R.id.progressBar),new LoginTask.LoginListener() {
+                    @Override
+                    public void OnSuccess() {
+                        Intent intent = new Intent(login.this, Map.class);
+                        startActivity(intent);
+                    }
+                    public void OnFailure(){
+                        Toast.makeText(getBaseContext(), R.string.wrongPassword, Toast.LENGTH_LONG).show();
+                    }
+                }).execute();
+
             }
         });
 
