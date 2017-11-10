@@ -1,5 +1,6 @@
 package com.example.antoinemaguet.snapapp;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -39,7 +40,8 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
     private LocationRequest locationRequest;
     private Marker currentPos;
     private Location mLastLocation;
-
+    private static final int REQUEST_LOCATION_PERMISSION = 1;
+    private static final String FRAGMENT_DIALOG = "dialog";
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,13 +73,6 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
         mapView.setStyleUrl("https://tile.jawg.io/jawg-streets.json?access-token=" + BuildConfig.JAWG_API_KEY);
         mapView.onCreate(savedInstanceState);
 
-        if (ContextCompat.checkSelfPermission(getContext(), ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            LocationManager mLocationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
-
-            //MapLocationListener mLocationListener = new MapLocationListener(MapFragment);
-            //mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 5, mLocationListener);
-
-        }
         googleApiClient.connect();
 
         locationRequest = new LocationRequest()
@@ -139,14 +134,17 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
         // updates.
         //LocationServices.FusedLocationApi.requestLocationUpdates(
                // googleApiClient, locationRequest, this);
-        if (ContextCompat.checkSelfPermission(getContext(), ACCESS_FINE_LOCATION)== PackageManager.PERMISSION_GRANTED) {
-            LocationManager mLocationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
-            MapLocationListener mLocationListener = new MapLocationListener(mapView, currentPos);
-
-            LocationServices.FusedLocationApi.requestLocationUpdates(
-                    googleApiClient, locationRequest, mLocationListener);
+        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestLocationPermission();
+            return;
         }
 
+        LocationManager mLocationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
+        MapLocationListener mLocationListener = new MapLocationListener(mapView, currentPos);
+
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                googleApiClient, locationRequest, mLocationListener);
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 googleApiClient);
 
@@ -165,7 +163,6 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
                 }
             });
         }
-        Log.i("BLABLA","Connected");
 
 
 
@@ -180,8 +177,31 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
         // This example doesn't need to do anything here.
     }
 
+    private void requestLocationPermission() {
+        if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
+            new Camera2BasicFragment.ConfirmationDialog().show(getChildFragmentManager(), FRAGMENT_DIALOG);
+        } else {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION_PERMISSION);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_LOCATION_PERMISSION) {
+            if (grantResults.length != 1 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                Camera2BasicFragment.ErrorDialog.newInstance(getString(R.string.request_permission))
+                        .show(getChildFragmentManager(), FRAGMENT_DIALOG);
+            }
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
 
     }
+
+
+
+}
 
 
 
