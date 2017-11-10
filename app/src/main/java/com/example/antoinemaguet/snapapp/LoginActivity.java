@@ -22,25 +22,36 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.GoogleApi;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.DriveFolder;
+import com.google.android.gms.drive.DriveId;
 import com.google.android.gms.drive.DriveResourceClient;
+import com.google.android.gms.drive.MetadataBuffer;
 import com.google.android.gms.drive.MetadataChangeSet;
+import com.google.android.gms.drive.query.Filters;
+import com.google.android.gms.drive.query.Query;
+import com.google.android.gms.drive.query.SearchableField;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
+import com.google.gson.JsonObject;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
-import static android.Manifest.permission_group.CAMERA;
+import static android.Manifest.permission.CAMERA;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -49,6 +60,7 @@ public class LoginActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_SIGN_IN = 0;
     private static final String DRIVE_ID = "driveId";
     private DriveResourceClient mDriveResourceClient;
+    public static JSONObject jsonStories;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,6 +109,8 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         signIn();
+
+
     }
 
     private void signIn() {
@@ -119,11 +133,14 @@ public class LoginActivity extends AppCompatActivity {
 
                     }
                 });
+
     }
 
     private void onSignInSuccess(GoogleSignInAccount account) {
         createDriveResourceClient(account);
-        createFileInAppFolder();
+        //createFileInAppFolder();
+        readStoriesFile();
+
     }
 
 
@@ -198,6 +215,7 @@ public class LoginActivity extends AppCompatActivity {
 
         final Task<DriveFolder> appFolderTask = getDriveResourceClient().getAppFolder();
         final Task<DriveContents> createContentsTask = getDriveResourceClient().createContents();
+
         Tasks.whenAll(appFolderTask, createContentsTask)
                 .continueWithTask(new Continuation<Void, Task<DriveFile>>() {
                     @Override
@@ -207,27 +225,72 @@ public class LoginActivity extends AppCompatActivity {
                         DriveContents contents = createContentsTask.getResult();
 
                         OutputStream outputStream = contents.getOutputStream();
+
+                        JSONObject jo = new JSONObject();
+                        jo.put("latitude", "45.79");
+                        jo.put("longitude", "4.83");
+
+                        JSONObject jo1 = new JSONObject();
+                        jo1.put("latitude", "45.80");
+                        jo1.put("longitude", "4.84");
+
+                        JSONObject jo2 = new JSONObject();
+                        jo2.put("latitude", "45.81");
+                        jo2.put("longitude", "4.85");
+
+                        JSONArray ja = new JSONArray();
+                        ja.put(jo);
+                        ja.put(jo1);
+                        ja.put(jo2);
+                        JSONObject mainObj = new JSONObject();
+                        mainObj.put("datas", ja);
+
                         try (Writer writer = new OutputStreamWriter(outputStream)) {
-                            writer.write("Hello World!");
+                            writer.write(mainObj.toString());
                         }
 
                         MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
-                                .setTitle("FileTest.txt")
-                                .setMimeType("text/plain")
+                                .setTitle("Tester.json")
+                                .setMimeType("application/json")
                                 .setStarred(true)
                                 .build();
 
-
-
                         return getDriveResourceClient().createFile(parent, changeSet, contents);
-
                     }
                 })
                 .addOnSuccessListener(this,
                         new OnSuccessListener<DriveFile>() {
                             @Override
                             public void onSuccess(DriveFile driveFile) {
-                                Log.i("BLABLA", "File created");
+                                Log.i("BLABLA", "File created" + driveFile.getDriveId().encodeToString());
+                                Task<DriveContents> openFileTask =
+                                        getDriveResourceClient().openFile(driveFile, DriveFile.MODE_READ_ONLY);
+                                openFileTask
+                                        .continueWithTask(new Continuation<DriveContents, Task<Void>>() {
+                                            @Override
+                                            public Task<Void> then(@NonNull Task<DriveContents> task) throws Exception {
+                                                DriveContents contents = task.getResult();
+                                                // Process contents...
+                                                try (BufferedReader reader = new BufferedReader(
+                                                        new InputStreamReader(contents.getInputStream()))) {
+                                                    StringBuilder builder = new StringBuilder();
+                                                    String line;
+                                                    while ((line = reader.readLine()) != null) {
+                                                        builder.append(line).append("\n");
+                                                    }
+                                                    Log.i("BLABLA", "File created" +builder.toString());
+                                                }
+                                                Task<Void> discardTask = getDriveResourceClient().discardContents(contents);
+                                                return discardTask;
+                                            }
+                                        })
+                                        .addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+                                                // Handle failure
+                                            }
+                                        });
+
 
                             }
                         })
@@ -237,6 +300,62 @@ public class LoginActivity extends AppCompatActivity {
                         Log.i("BLABLA", "Unable to create file");
                     }
                 });
+
+    }
+
+
+    private void readStoriesFile() {
+
+        Query query = new Query.Builder()
+                .addFilter(Filters.eq(SearchableField.TITLE, "Datas.json"))
+                .build();
+        Task<MetadataBuffer> queryTask = getDriveResourceClient().query(query);
+        queryTask
+                .addOnSuccessListener(this,
+                        new OnSuccessListener<MetadataBuffer>() {
+                            @Override
+                            public void onSuccess(MetadataBuffer metadataBuffer) {
+                                DriveId driveId = metadataBuffer.get(0).getDriveId();
+                                DriveFile filerr = driveId.asDriveFile();
+                                Task<DriveContents> openFileTask =
+                                        getDriveResourceClient().openFile(filerr, DriveFile.MODE_READ_ONLY);
+                                openFileTask
+                                        .continueWithTask(new Continuation<DriveContents, Task<Void>>() {
+                                            @Override
+                                            public Task<Void> then(@NonNull Task<DriveContents> task) throws Exception {
+                                                DriveContents contents = task.getResult();
+                                                // Process contents...
+                                                try (BufferedReader reader = new BufferedReader(
+                                                        new InputStreamReader(contents.getInputStream()))) {
+                                                    StringBuilder builder = new StringBuilder();
+                                                    String line;
+                                                    while ((line = reader.readLine()) != null) {
+                                                        builder.append(line).append("\n");
+                                                    }
+                                                    Log.i("BLABLA", "File Readable" +builder.toString());
+                                                    jsonStories = new JSONObject(builder.toString());
+
+                                                }
+                                                Task<Void> discardTask = getDriveResourceClient().discardContents(contents);
+                                                return discardTask;
+                                            }
+                                        })
+                                        .addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+                                                // Handle failure
+                                            }
+                                        });
+
+                            }
+                        })
+                .addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // Handle failure...
+                    }
+                });
+
     }
 
 
