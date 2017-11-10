@@ -1,5 +1,6 @@
 package com.example.antoinemaguet.snapapp;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -16,6 +17,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
+import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
@@ -26,13 +28,17 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.List;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
 
 /**
- * Created by antoine on 29/10/2017.
+ * Created by antoinemaguet on 29/10/2017.
  */
 
 
@@ -40,15 +46,23 @@ public class MapLocationListener implements LocationListener {
 
     private MapView mapView;
     private Marker currentPos;
-
-    MapLocationListener(MapView mapView, Marker pos) {
+    private Activity activity;
+    private JSONObject jsonStories;
+    public static Location lastLoc;
+    MapLocationListener(MapView mapView, Marker pos, Activity activity, JSONObject jsonStories) {
         this.mapView=mapView;
         this.currentPos=pos;
+        this.activity=activity;
+        this.jsonStories=jsonStories;
     }
 
     @Override
     public void onLocationChanged(final Location location)
     {
+        lastLoc=location;
+        final JSONObject jsonDisplay=this.jsonStories;
+        IconFactory iconFactory =IconFactory.getInstance(this.activity);
+        final Icon icon = iconFactory.fromResource(R.drawable.ic_blue_marker);
         Log.i("BLABLA","LocationChanged");
 
         this.mapView.getMapAsync(new OnMapReadyCallback() {
@@ -59,12 +73,26 @@ public class MapLocationListener implements LocationListener {
                 }else{
                     currentPos.setPosition(new LatLng(location));
                 }
+                try{
+                    JSONArray arr= jsonDisplay.getJSONArray("datas");
+                    for(int i=0;i<arr.length();i++){
+                        JSONObject jsonObj = arr.getJSONObject(i);
+                        Location tempLoc= new Location("tempLoc");
+                        tempLoc.setLongitude(jsonObj.getDouble("longitude"));
+                        tempLoc.setLatitude(jsonObj.getDouble("latitude"));
+                        Float distance = location.distanceTo(tempLoc);
+                        Log.i("BLABLA","marker"+i);
+                        Log.i("BLABLA","marker"+tempLoc);
+                        mapboxMap.addMarker(new MarkerOptions().position(new LatLng(tempLoc)).icon(icon));
+                    }
+                }catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
 
 
             }
         });
     }
-
 
 
 

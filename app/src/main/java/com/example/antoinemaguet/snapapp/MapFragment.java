@@ -15,43 +15,21 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.drive.DriveContents;
-import com.google.android.gms.drive.DriveFile;
-import com.google.android.gms.drive.DriveId;
 import com.google.android.gms.drive.DriveResourceClient;
-import com.google.android.gms.drive.MetadataBuffer;
-import com.google.android.gms.drive.query.Filters;
-import com.google.android.gms.drive.query.Query;
-import com.google.android.gms.drive.query.SearchableField;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationRequest;
-
-import com.google.android.gms.tasks.Continuation;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.Marker;
-import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdate;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
-
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
-import static android.Manifest.permission.ACCESS_FINE_LOCATION;
-
 
 public class MapFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener{
 
@@ -63,8 +41,8 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
     private static final int REQUEST_LOCATION_PERMISSION = 1;
     private static final String FRAGMENT_DIALOG = "dialog";
     private DriveResourceClient mDriveResourceClient;
-    private  JSONObject jsonStories;
-
+    private JSONObject jsonStories;
+    private Icon icon;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,8 +62,6 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
-
-        JSONObject jsonStories=LoginActivity.jsonStories;
 
 
         return view;
@@ -129,7 +105,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
                 }
             }
         });
-        Log.i("BLABLA","ViewCreated"+jsonStories);
+        Log.i("BLABLA","ViewCreated");
 
 
     }
@@ -167,7 +143,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
         }
 
         LocationManager mLocationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
-        MapLocationListener mLocationListener = new MapLocationListener(mapView, currentPos);
+        MapLocationListener mLocationListener = new MapLocationListener(mapView, currentPos, getActivity(), LoginActivity.jsonStories);
 
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 googleApiClient, locationRequest, mLocationListener);
@@ -185,19 +161,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
                             return new CameraPosition.Builder().target(new LatLng(mLastLocation)).zoom(15).bearing(0).build();
                         }
                     }, 2000);
-                    try{
-                        JSONArray arr= jsonStories.getJSONArray("datas");
-                        for(int i=0;i<arr.length();i++){
-                                JSONObject jsonObj = arr.getJSONObject(i);
-                                Location tempLoc= new Location("tempLoc");
-                                tempLoc.setLongitude(jsonObj.getDouble("longitude"));
-                                tempLoc.setLatitude(jsonObj.getDouble("latitude"));
-                                Float distance = mLastLocation.distanceTo(tempLoc);
-                                mapboxMap.addMarker(new MarkerOptions().position(new LatLng(tempLoc)));
-                        }
-                    }catch (JSONException e) {
-                        throw new RuntimeException(e);
-                    }
+
 
                 }
             });
@@ -237,6 +201,8 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
         }
 
     }
+
+
 
 
 

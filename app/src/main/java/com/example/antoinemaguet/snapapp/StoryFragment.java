@@ -35,12 +35,8 @@ public class StoryFragment extends Fragment {
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
 
-        // specify an adapter
         List<ListObjectRecyclerView> myDataSet=new ArrayList<>();
-        myDataSet.add(new ListObjectRecyclerView("test"));
-        myDataSet.add(new ListObjectRecyclerView("eee"));
-        myDataSet.add(new ListObjectRecyclerView("ggggg"));
-
+        myDataSet = new CloseStories().getCloseStories(MapLocationListener.lastLoc ,LoginActivity.jsonStories);
         StoryFragmentAdapter adapter = new StoryFragmentAdapter(myDataSet);
         recyclerView.setAdapter(adapter);
 

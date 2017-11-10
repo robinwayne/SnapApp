@@ -69,7 +69,6 @@ public class LoginActivity extends AppCompatActivity {
         Button submitBtn = (Button) findViewById(R.id.submitBtn);
         Button resetBtn = (Button) findViewById(R.id.resetBtn);
 
-
         if(!checkPermission()) {
             requestPermission();
         }
