@@ -12,5 +12,7 @@
     <string name="request_permission">This sample needs camera permission.</string>
     <string name="camera_error">This device doesn\'t support Camera2 API.</string>
     <string name="intro_message">Intro</string>
+    <string name="file_create_error">Error create file</string>
+    <string name="file_created">File created</string>
 
 </resources>

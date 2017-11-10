@@ -8,12 +8,17 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+
+import com.google.android.gms.drive.Drive;
+
 public class FragmentsActivity extends FragmentActivity {
 
-    private static final int NUM_PAGES = 3;
     private PagerAdapter mPagerAdapter;
     private ViewPager vPager;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -24,7 +29,11 @@ public class FragmentsActivity extends FragmentActivity {
         mPagerAdapter = new ScreenSlidePagerAdapter(getSupportFragmentManager());
         vPager.setAdapter(mPagerAdapter);
 
+        
     }
+
+
+
 
     @Override
     public void onBackPressed() {
@@ -38,35 +47,13 @@ public class FragmentsActivity extends FragmentActivity {
         }
     }
 
-
     /**
      * A simple pager adapter that represents 5 ScreenSlidePageFragment objects, in
      * sequence.
      */
-    private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
-        public ScreenSlidePagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
 
-        @Override
-        public Fragment getItem(int position) {
-            switch(position){
-                case 0:
-                    return new MapFragment();
-                case 1:
-                    return new Camera2BasicFragment();
-                case 2:
-                    return new StoryFragment();
-                default:
-                    return new MapFragment();
-            }
-        }
 
-        @Override
-        public int getCount() {
-            return NUM_PAGES;
-        }
-    }
+
 }
 
 

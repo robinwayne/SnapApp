@@ -7,20 +7,49 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.GoogleApi;
+import com.google.android.gms.drive.Drive;
+import com.google.android.gms.drive.DriveContents;
+import com.google.android.gms.drive.DriveFile;
+import com.google.android.gms.drive.DriveFolder;
+import com.google.android.gms.drive.DriveResourceClient;
+import com.google.android.gms.drive.MetadataChangeSet;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission_group.CAMERA;
 
 public class LoginActivity extends AppCompatActivity {
+
+    private GoogleSignInClient mGoogleSignInClient;
     private static final int PERMISSION_REQUEST_CODE = 200;
+    private static final int REQUEST_CODE_SIGN_IN = 0;
+    private static final String DRIVE_ID = "driveId";
+    private DriveResourceClient mDriveResourceClient;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,6 +62,7 @@ public class LoginActivity extends AppCompatActivity {
             requestPermission();
         }
 
+        mGoogleSignInClient = buildGoogleSignInClient();
 
         final EditText usernameEdit = (EditText) findViewById(R.id.usernameEdit);
         final EditText passwordEdit = (EditText) findViewById(R.id.passwordEdit);
@@ -65,8 +95,49 @@ public class LoginActivity extends AppCompatActivity {
             }
 
         });
+
+        signIn();
     }
 
+    private void signIn() {
+        final GoogleSignInClient signInClient = buildGoogleSignInClient();
+        signInClient.silentSignIn()
+                .addOnSuccessListener(new OnSuccessListener<GoogleSignInAccount>() {
+                    @Override
+                    public void onSuccess(GoogleSignInAccount googleSignInAccount) {
+                        onSignInSuccess(googleSignInAccount);
+                        Log.i("BLABLA", "Success Connection");
+
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // Silent sign-in failed, display account selection prompt
+                        startActivityForResult(signInClient.getSignInIntent(), REQUEST_CODE_SIGN_IN);
+                        Log.i("BLABLA", "Failed Connection");
+
+                    }
+                });
+    }
+
+    private void onSignInSuccess(GoogleSignInAccount account) {
+        createDriveResourceClient(account);
+        createFileInAppFolder();
+    }
+
+
+    private GoogleSignInClient buildGoogleSignInClient() {
+        GoogleSignInOptions signInOptions =
+                new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestScopes(Drive.SCOPE_APPFOLDER)
+                        .build();
+        return GoogleSignIn.getClient(this, signInOptions);
+    }
+
+    private void createDriveResourceClient(GoogleSignInAccount account) {
+        mDriveResourceClient = Drive.getDriveResourceClient(getApplicationContext(), account);
+    }
 
     private boolean checkPermission() {
         int result = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION);
@@ -113,6 +184,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+
     private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
         new AlertDialog.Builder(LoginActivity.this)
                 .setMessage(message)
@@ -120,6 +192,56 @@ public class LoginActivity extends AppCompatActivity {
                 .setNegativeButton("Deny", null)
                 .create()
                 .show();
+    }
+
+    private void createFileInAppFolder() {
+
+        final Task<DriveFolder> appFolderTask = getDriveResourceClient().getAppFolder();
+        final Task<DriveContents> createContentsTask = getDriveResourceClient().createContents();
+        Tasks.whenAll(appFolderTask, createContentsTask)
+                .continueWithTask(new Continuation<Void, Task<DriveFile>>() {
+                    @Override
+                    public Task<DriveFile> then(@NonNull Task<Void> task) throws Exception {
+                        DriveFolder parent = appFolderTask.getResult();
+
+                        DriveContents contents = createContentsTask.getResult();
+
+                        OutputStream outputStream = contents.getOutputStream();
+                        try (Writer writer = new OutputStreamWriter(outputStream)) {
+                            writer.write("Hello World!");
+                        }
+
+                        MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                                .setTitle("FileTest.txt")
+                                .setMimeType("text/plain")
+                                .setStarred(true)
+                                .build();
+
+
+
+                        return getDriveResourceClient().createFile(parent, changeSet, contents);
+
+                    }
+                })
+                .addOnSuccessListener(this,
+                        new OnSuccessListener<DriveFile>() {
+                            @Override
+                            public void onSuccess(DriveFile driveFile) {
+                                Log.i("BLABLA", "File created");
+
+                            }
+                        })
+                .addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.i("BLABLA", "Unable to create file");
+                    }
+                });
+    }
+
+
+    protected DriveResourceClient getDriveResourceClient() {
+        return mDriveResourceClient;
     }
 
 }
