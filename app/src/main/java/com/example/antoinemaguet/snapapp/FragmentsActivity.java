@@ -54,11 +54,11 @@ public class FragmentsActivity extends FragmentActivity {
                 case 0:
                     return new MapFragment();
                 case 1:
-                    return new picture();
+                    return new Camera2BasicFragment();
                 case 2:
                     return new StoryFragment();
                 default:
-                    return new picture();
+                    return new MapFragment();
             }
         }
 

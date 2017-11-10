@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -88,26 +89,28 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
         FAB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(mLastLocation != null) {
+                    mapView.getMapAsync(new OnMapReadyCallback() {
+                        @Override
+                        public void onMapReady(MapboxMap mapboxMap) {
+
+                            mapboxMap.easeCamera(new CameraUpdate() {
+                                @Nullable
+                                @Override
+                                public CameraPosition getCameraPosition(@NonNull MapboxMap mapboxMap) {
+                                    return new CameraPosition.Builder().target(new LatLng(mLastLocation)).zoom(15).bearing(0).build();
+                                }
+                            }, 2000);
 
 
-                mapView.getMapAsync(new OnMapReadyCallback() {
-                    @Override
-                    public void onMapReady(MapboxMap mapboxMap) {
-
-                        mapboxMap.easeCamera(new CameraUpdate() {
-                            @Nullable
-                            @Override
-                            public CameraPosition getCameraPosition(@NonNull MapboxMap mapboxMap) {
-                                return new CameraPosition.Builder().target(new LatLng(mLastLocation)).zoom(15).bearing(0).build();
-                            }
-                        }, 2000);
-
-
-                    }
-                });
-
+                        }
+                    });
+                }
             }
         });
+
+        Log.i("BLABLA","ViewCreated");
+
     }
 
     @Override
@@ -147,20 +150,22 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 googleApiClient);
 
-        this.mapView.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(MapboxMap mapboxMap) {
-                mapboxMap.easeCamera(new CameraUpdate() {
-                    @Nullable
-                    @Override
-                    public CameraPosition getCameraPosition(@NonNull MapboxMap mapboxMap) {
-                        return new CameraPosition.Builder().target(new LatLng(mLastLocation)).zoom(15).bearing(0).build();
-                    }
-                },2000);
+        if(mLastLocation != null) {
+            this.mapView.getMapAsync(new OnMapReadyCallback() {
+                @Override
+                public void onMapReady(MapboxMap mapboxMap) {
+                    mapboxMap.easeCamera(new CameraUpdate() {
+                        @Nullable
+                        @Override
+                        public CameraPosition getCameraPosition(@NonNull MapboxMap mapboxMap) {
+                            return new CameraPosition.Builder().target(new LatLng(mLastLocation)).zoom(15).bearing(0).build();
+                        }
+                    }, 2000);
 
-            }
-        });
-
+                }
+            });
+        }
+        Log.i("BLABLA","Connected");
 
 
 
@@ -173,13 +178,6 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
         // APIs until onConnected() is called.
         //
         // This example doesn't need to do anything here.
-    }
-
-
-
-    @Override
-    public void onPause() {
-        super.onPause();
     }
 
 

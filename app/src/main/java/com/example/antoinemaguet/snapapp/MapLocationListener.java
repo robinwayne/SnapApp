@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.View;
 
 
@@ -48,6 +49,8 @@ public class MapLocationListener implements LocationListener {
     @Override
     public void onLocationChanged(final Location location)
     {
+        Log.i("BLABLA","LocationChanged");
+
         this.mapView.getMapAsync(new OnMapReadyCallback() {
             @Override
             public void onMapReady(MapboxMap mapboxMap) {
