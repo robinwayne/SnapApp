@@ -33,6 +33,7 @@ package com.example.antoinemaguet.snapapp;
         import android.os.Bundle;
         import android.os.Handler;
         import android.os.HandlerThread;
+        import android.os.ParcelFileDescriptor;
         import android.support.annotation.NonNull;
         import android.support.v4.app.ActivityCompat;
         import android.support.v4.app.DialogFragment;
@@ -48,14 +49,36 @@ package com.example.antoinemaguet.snapapp;
         import android.view.ViewGroup;
         import android.widget.Toast;
 
+        import com.google.android.gms.drive.DriveContents;
+        import com.google.android.gms.drive.DriveFile;
+        import com.google.android.gms.drive.DriveId;
+        import com.google.android.gms.drive.DriveResourceClient;
+        import com.google.android.gms.drive.MetadataBuffer;
+        import com.google.android.gms.drive.MetadataChangeSet;
+        import com.google.android.gms.drive.query.Filters;
+        import com.google.android.gms.drive.query.Query;
+        import com.google.android.gms.drive.query.SearchableField;
+        import com.google.android.gms.tasks.Continuation;
+        import com.google.android.gms.tasks.OnFailureListener;
+        import com.google.android.gms.tasks.OnSuccessListener;
+        import com.google.android.gms.tasks.Task;
+
+        import org.json.JSONObject;
+
+        import java.io.BufferedReader;
         import java.io.File;
+        import java.io.FileInputStream;
         import java.io.FileOutputStream;
         import java.io.IOException;
+        import java.io.InputStream;
+        import java.io.InputStreamReader;
+        import java.io.OutputStream;
         import java.nio.ByteBuffer;
         import java.util.ArrayList;
         import java.util.Arrays;
         import java.util.Collections;
         import java.util.Comparator;
+        import java.util.Date;
         import java.util.List;
         import java.util.concurrent.Semaphore;
         import java.util.concurrent.TimeUnit;
@@ -233,6 +256,7 @@ public class Camera2BasicFragment extends Fragment
         @Override
         public void onImageAvailable(ImageReader reader) {
             mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+
         }
 
     };
@@ -914,13 +938,22 @@ public class Camera2BasicFragment extends Fragment
          */
         private final File mFile;
 
-        ImageSaver(Image image, File file) {
+        ImageSaver(Image image, File file ) {
             mImage = image;
             mFile = file;
         }
 
         @Override
         public void run() {
+            JSONObject jsonTrans = LoginActivity.jsonStories;
+            Log.i("LAAA","file"+jsonTrans);
+
+            final DriveResourceClient resourceClient = LoginActivity.mDriveResourceClient;
+
+            Log.i("LAAA","file"+jsonTrans);
+
+
+
             ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
             byte[] bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
@@ -940,6 +973,69 @@ public class Camera2BasicFragment extends Fragment
                     }
                 }
             }
+
+            Query query = new Query.Builder()
+                    .addFilter(Filters.eq(SearchableField.TITLE, "Datas.json"))
+                    .build();
+            Task<MetadataBuffer> queryTask = resourceClient.query(query);
+            Log.i("LAAA","query "+queryTask);
+
+            queryTask
+                    .addOnSuccessListener(LoginActivity.activity,
+                            new OnSuccessListener<MetadataBuffer>() {
+                                @Override
+                                public void onSuccess(MetadataBuffer metadataBuffer) {
+                                    DriveId driveId = metadataBuffer.get(0).getDriveId();
+                                    DriveFile filerr = driveId.asDriveFile();
+                                    Log.i("LAAA","query "+filerr);
+
+                                    Task<DriveContents> openTask =
+                                            resourceClient.openFile(filerr, DriveFile.MODE_READ_WRITE);
+                                    openTask.continueWithTask(new Continuation<DriveContents, Task<Void>>() {
+                                        @Override
+                                        public Task<Void> then(@NonNull Task<DriveContents> task) throws Exception {
+                                            DriveContents driveContents = task.getResult();
+                                            ParcelFileDescriptor pfd = driveContents.getParcelFileDescriptor();
+                                            long bytesToSkip = pfd.getStatSize();
+                                            try (InputStream in = new FileInputStream(pfd.getFileDescriptor())) {
+                                                // Skip to end of file
+                                                while (bytesToSkip > 0) {
+                                                    long skipped = in.skip(bytesToSkip);
+                                                    bytesToSkip -= skipped;
+                                                }
+                                            }
+                                            try (OutputStream out = new FileOutputStream(pfd.getFileDescriptor())) {
+                                                Log.i("LAAA","Out"+out);
+
+                                                out.write("".getBytes());
+                                            }
+
+                                            MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                                                    .setStarred(true)
+                                                    .setLastViewedByMeDate(new Date())
+                                                    .build();
+                                            Task<Void> commitTask =
+                                                    resourceClient.commitContents(driveContents, changeSet);
+
+                                            return commitTask;
+                                        }
+                                    })
+                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(Void aVoid) {
+                                                    Log.i("LAAA","Updatefile");
+
+                                                }
+                                            })
+                                            .addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    // Handle failure
+                                                }
+                                            });
+
+                                }
+                            });
         }
 
     }

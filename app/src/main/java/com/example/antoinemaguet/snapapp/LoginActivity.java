@@ -1,6 +1,7 @@
 package com.example.antoinemaguet.snapapp;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -55,13 +56,14 @@ import static android.Manifest.permission.CAMERA;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private GoogleSignInClient mGoogleSignInClient;
+
     private static final int PERMISSION_REQUEST_CODE = 200;
     private static final int REQUEST_CODE_SIGN_IN = 0;
     private static final String DRIVE_ID = "driveId";
-    private DriveResourceClient mDriveResourceClient;
+    public static DriveResourceClient mDriveResourceClient;
     public static JSONObject jsonStories;
-
+    private GoogleSignInClient signInClientTest;
+    public static Activity activity;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,8 +75,15 @@ public class LoginActivity extends AppCompatActivity {
             requestPermission();
         }
 
-        mGoogleSignInClient = buildGoogleSignInClient();
+        //mGoogleSignInClient = buildGoogleSignInClient();
+        //signInClientTest=buildGoogleSignInClient();
+        //NewGoogleApiClient mGoogleApiClient = new NewGoogleApiClient(signInClientTest);
+        //mGoogleSignInClient = mGoogleApiClient.buildGoogleSignInClient();
 
+        //GoogleSignInClient signInClient = mGoogleApiClient.buildGoogleSignInClient();
+        //mGoogleApiClient.signIn();
+        //JSONObject jsontest = mGoogleApiClient.readStoriesFile();
+        //Log.i("BLABLA","messagecree par classe"+jsontest);
         final EditText usernameEdit = (EditText) findViewById(R.id.usernameEdit);
         final EditText passwordEdit = (EditText) findViewById(R.id.passwordEdit);
 
@@ -106,6 +115,7 @@ public class LoginActivity extends AppCompatActivity {
             }
 
         });
+
 
         signIn();
 
@@ -148,12 +158,15 @@ public class LoginActivity extends AppCompatActivity {
                 new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                         .requestScopes(Drive.SCOPE_APPFOLDER)
                         .build();
-        return GoogleSignIn.getClient(this, signInOptions);
+        activity=this;
+        return GoogleSignIn.getClient(activity, signInOptions);
+
     }
 
     private void createDriveResourceClient(GoogleSignInAccount account) {
         mDriveResourceClient = Drive.getDriveResourceClient(getApplicationContext(), account);
     }
+
 
     private boolean checkPermission() {
         int result = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION);
