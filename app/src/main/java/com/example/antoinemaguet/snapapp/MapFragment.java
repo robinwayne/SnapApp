@@ -143,7 +143,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
         }
 
         LocationManager mLocationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
-        MapLocationListener mLocationListener = new MapLocationListener(mapView, currentPos, getActivity(), LoginActivity.jsonStories);
+        MapLocationListener mLocationListener = new MapLocationListener(mapView, currentPos, getActivity(), FragmentsActivity.jsonStories);
 
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 googleApiClient, locationRequest, mLocationListener);

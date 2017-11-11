@@ -32,7 +32,8 @@ public class CloseStories {
                 Location tempLoc= new Location("tempLoc");
                 Float distance = location.distanceTo(tempLoc);
                 if (distance > 5000){
-                    myDataSet.add(new ListObjectRecyclerView("test"+i));
+                    JSONObject field = arr.getJSONObject(i);
+                    myDataSet.add(new ListObjectRecyclerView(jsonObj.getString("text")));
                 }
             }
         }catch (JSONException e) {

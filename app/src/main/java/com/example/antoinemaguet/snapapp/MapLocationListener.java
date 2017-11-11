@@ -48,6 +48,7 @@ public class MapLocationListener implements LocationListener {
     private Marker currentPos;
     private Activity activity;
     private JSONObject jsonStories;
+
     public static Location lastLoc;
     MapLocationListener(MapView mapView, Marker pos, Activity activity, JSONObject jsonStories) {
         this.mapView=mapView;
@@ -73,20 +74,20 @@ public class MapLocationListener implements LocationListener {
                 }else{
                     currentPos.setPosition(new LatLng(location));
                 }
-                try{
-                    JSONArray arr= jsonDisplay.getJSONArray("datas");
-                    for(int i=0;i<arr.length();i++){
-                        JSONObject jsonObj = arr.getJSONObject(i);
-                        Location tempLoc= new Location("tempLoc");
-                        tempLoc.setLongitude(jsonObj.getDouble("longitude"));
-                        tempLoc.setLatitude(jsonObj.getDouble("latitude"));
-                        Float distance = location.distanceTo(tempLoc);
-                        Log.i("BLABLA","marker"+i);
-                        Log.i("BLABLA","marker"+tempLoc);
-                        mapboxMap.addMarker(new MarkerOptions().position(new LatLng(tempLoc)).icon(icon));
+                if(jsonDisplay != null) {
+                    try {
+                        JSONArray arr = jsonDisplay.getJSONArray("datas");
+                        for (int i = 0; i < arr.length(); i++) {
+                            JSONObject jsonObj = arr.getJSONObject(i);
+                            Location tempLoc = new Location("tempLoc");
+                            tempLoc.setLongitude(jsonObj.getDouble("longitude"));
+                            tempLoc.setLatitude(jsonObj.getDouble("latitude"));
+                            Float distance = location.distanceTo(tempLoc);
+                            mapboxMap.addMarker(new MarkerOptions().position(new LatLng(tempLoc)).icon(icon));
+                        }
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
                     }
-                }catch (JSONException e) {
-                    throw new RuntimeException(e);
                 }
 
 

@@ -945,12 +945,10 @@ public class Camera2BasicFragment extends Fragment
 
         @Override
         public void run() {
-            JSONObject jsonTrans = LoginActivity.jsonStories;
+            JSONObject jsonTrans = FragmentsActivity.jsonStories;
             Log.i("LAAA","file"+jsonTrans);
 
-            final DriveResourceClient resourceClient = LoginActivity.mDriveResourceClient;
-
-            Log.i("LAAA","file"+jsonTrans);
+            final DriveResourceClient resourceClient = FragmentsActivity.mDriveResourceClient;
 
 
 
@@ -978,17 +976,14 @@ public class Camera2BasicFragment extends Fragment
                     .addFilter(Filters.eq(SearchableField.TITLE, "Datas.json"))
                     .build();
             Task<MetadataBuffer> queryTask = resourceClient.query(query);
-            Log.i("LAAA","query "+queryTask);
 
             queryTask
-                    .addOnSuccessListener(LoginActivity.activity,
+                    .addOnSuccessListener(FragmentsActivity.activity,
                             new OnSuccessListener<MetadataBuffer>() {
                                 @Override
                                 public void onSuccess(MetadataBuffer metadataBuffer) {
                                     DriveId driveId = metadataBuffer.get(0).getDriveId();
                                     DriveFile filerr = driveId.asDriveFile();
-                                    Log.i("LAAA","query "+filerr);
-
                                     Task<DriveContents> openTask =
                                             resourceClient.openFile(filerr, DriveFile.MODE_READ_WRITE);
                                     openTask.continueWithTask(new Continuation<DriveContents, Task<Void>>() {
@@ -996,18 +991,22 @@ public class Camera2BasicFragment extends Fragment
                                         public Task<Void> then(@NonNull Task<DriveContents> task) throws Exception {
                                             DriveContents driveContents = task.getResult();
                                             ParcelFileDescriptor pfd = driveContents.getParcelFileDescriptor();
+
                                             long bytesToSkip = pfd.getStatSize();
+                                            bytesToSkip=bytesToSkip-2;
                                             try (InputStream in = new FileInputStream(pfd.getFileDescriptor())) {
                                                 // Skip to end of file
-                                                while (bytesToSkip > 0) {
+                                                while (bytesToSkip > 2) {
                                                     long skipped = in.skip(bytesToSkip);
                                                     bytesToSkip -= skipped;
                                                 }
                                             }
                                             try (OutputStream out = new FileOutputStream(pfd.getFileDescriptor())) {
-                                                Log.i("LAAA","Out"+out);
-
-                                                out.write("".getBytes());
+                                                String latitude = String.valueOf(MapLocationListener.lastLoc.getLatitude());
+                                                String longitude = String.valueOf(MapLocationListener.lastLoc.getLongitude());
+                                                String text = "mettre ke bon name";
+                                                String toWrite = ",{\"latitude\":\""+ latitude +"\",\"longitude\":\""+longitude+"\",\"text\":\"" + text + "\"}]}";
+                                                out.write(toWrite.getBytes());
                                             }
 
                                             MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
