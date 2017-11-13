@@ -2,8 +2,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:tag="unique_tag"
+    android:id="@+id/mapTestID"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.example.antoinemaguet.snapapp.MapFragment">
+
 
     <com.mapbox.mapboxsdk.maps.MapView
         android:id="@+id/mapView"
@@ -12,7 +15,6 @@
         app:mapbox_cameraTargetLat="45.784265"
         app:mapbox_cameraTargetLng="4.869752"
         app:mapbox_cameraZoom="12" />
-
 
     <android.support.design.widget.FloatingActionButton
         android:layout_margin="10dp"
@@ -26,5 +28,5 @@
         android:layout_gravity="bottom|right"
         app:layout_anchorGravity="bottom|right|end"
         android:clickable="true" />
-
 </FrameLayout>
+
