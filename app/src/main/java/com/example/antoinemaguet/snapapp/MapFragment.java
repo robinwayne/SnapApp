@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Rect;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -511,6 +512,8 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
                                 // Handle results...
                                 // [START_EXCLUDE]
                                 JSONObject mainObj = new JSONObject();
+                                final BitmapFactory.Options options = new BitmapFactory.Options();
+                                options.inSampleSize = 4;
 
                                 for (Iterator<Metadata> i = metadataBuffer.iterator(); i.hasNext();) {
                                     Metadata item = i.next();
@@ -555,7 +558,8 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
                                                     DriveContents contents = task.getResult();
                                                     // Process contents...
                                                     InputStream mInputStream = contents.getInputStream();
-                                                    Bitmap bitmap1 = BitmapFactory.decodeStream(mInputStream);
+                                                    Rect tester= new Rect();
+                                                    Bitmap bitmap1 = BitmapFactory.decodeStream(mInputStream, tester,options);
 
                                                     //add title description image to myDataSet
                                                     myDataSet.add(new ListObjectRecyclerView(description,bitmap1));
@@ -571,7 +575,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
                                                     Log.i("BLABLA","faileddddd");
                                                 }
                                             });
-                                    metadataBuffer.release();
+                                    //metadataBuffer.release();
 
                                 }
                                 jsonStories=mainObj;
