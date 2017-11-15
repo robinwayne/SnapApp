@@ -94,6 +94,8 @@ public class EmailPasswordAuthActivity extends BaseActivity implements
                             Log.d(TAG, "createUserWithEmail:success");
                             FirebaseUser user = mAuth.getCurrentUser();
                             updateUI(user);
+                            Toast.makeText(EmailPasswordAuthActivity.this, "Now, you must verify your email",
+                                    Toast.LENGTH_SHORT).show();
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "createUserWithEmail:failure", task.getException());
@@ -135,15 +137,14 @@ public class EmailPasswordAuthActivity extends BaseActivity implements
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithEmail:failure", task.getException());
-                            Toast.makeText(EmailPasswordAuthActivity.this, "Authentication failed.",
+                            Toast.makeText(EmailPasswordAuthActivity.this, "Authentification failed. Maybe still not registered ?",
                                     Toast.LENGTH_SHORT).show();
                             updateUI(null);
+                            mEmailField.setText("");
+                            mPasswordField.setText("");
                         }
 
                         // [START_EXCLUDE]
-                        if (!task.isSuccessful()) {
-                            mStatusTextView.setText(R.string.auth_failed);
-                        }
                         hideProgressDialog();
                         // [END_EXCLUDE]
                     }
