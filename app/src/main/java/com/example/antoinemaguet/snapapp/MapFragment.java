@@ -269,6 +269,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
         createDriveResourceClient(account);
         //createFileInAppFolder();
         readStoriesFile();
+        //createFolder();
     }
 
 
@@ -276,6 +277,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
         GoogleSignInOptions signInOptions =
                 new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                         .requestScopes(Drive.SCOPE_APPFOLDER)
+                        .requestScopes(Drive.SCOPE_FILE)
                         .build();
         return GoogleSignIn.getClient(getActivity(), signInOptions);
 
@@ -288,7 +290,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
 
     private void createFileInAppFolder() {
 
-        final Task<DriveFolder> appFolderTask = getDriveResourceClient().getAppFolder();
+        final Task<DriveFolder> appFolderTask = getDriveResourceClient().getRootFolder();
         final Task<DriveContents> createContentsTask = getDriveResourceClient().createContents();
 
         Tasks.whenAll(appFolderTask, createContentsTask)
@@ -434,6 +436,42 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
                     }
                 });
 
+    }
+
+    private void createFolder() {
+
+
+        getDriveResourceClient()
+                .getRootFolder()
+                .continueWithTask(new Continuation<DriveFolder, Task<DriveFolder>>() {
+                    @Override
+                    public Task<DriveFolder> then(@NonNull Task<DriveFolder> task)
+                            throws Exception {
+                        DriveFolder parentFolder = task.getResult();
+                        MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                                .setTitle("Images")
+                                .setMimeType(DriveFolder.MIME_TYPE)
+                                .setStarred(true)
+                                .build();
+                        return getDriveResourceClient().createFolder(parentFolder, changeSet);
+                    }
+                })
+                .addOnSuccessListener(getActivity(),
+                        new OnSuccessListener<DriveFolder>() {
+                            @Override
+                            public void onSuccess(DriveFolder driveFolder) {
+                                Log.i("BLABLA", "Folder created"+driveFolder.getDriveId().toString());
+
+
+                            }
+                        })
+                .addOnFailureListener(getActivity(), new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.i("BLABLA", "Unable to create folder");
+
+                    }
+                });
     }
 
     protected DriveResourceClient getDriveResourceClient() {

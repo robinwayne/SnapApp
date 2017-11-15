@@ -14,8 +14,11 @@ package com.example.antoinemaguet.snapapp;
 
         import android.content.Context;
         import android.content.DialogInterface;
+        import android.content.Intent;
         import android.content.pm.PackageManager;
         import android.content.res.Configuration;
+        import android.graphics.Bitmap;
+        import android.graphics.BitmapFactory;
         import android.graphics.ImageFormat;
         import android.graphics.Matrix;
         import android.graphics.Point;
@@ -41,6 +44,7 @@ package com.example.antoinemaguet.snapapp;
         import android.support.v4.app.ActivityCompat;
         import android.support.v4.app.DialogFragment;
         import android.support.v4.app.Fragment;
+        import android.support.v4.app.FragmentActivity;
         import android.support.v4.content.ContextCompat;
         import android.util.Log;
         import android.util.Size;
@@ -50,14 +54,22 @@ package com.example.antoinemaguet.snapapp;
         import android.view.TextureView;
         import android.view.View;
         import android.view.ViewGroup;
+        import android.widget.Button;
+        import android.widget.EditText;
+        import android.widget.ImageButton;
+        import android.widget.ImageView;
+        import android.widget.ProgressBar;
+        import android.widget.TextView;
         import android.widget.Toast;
 
         import com.google.android.gms.drive.DriveContents;
         import com.google.android.gms.drive.DriveFile;
+        import com.google.android.gms.drive.DriveFolder;
         import com.google.android.gms.drive.DriveId;
         import com.google.android.gms.drive.DriveResourceClient;
         import com.google.android.gms.drive.MetadataBuffer;
         import com.google.android.gms.drive.MetadataChangeSet;
+        import com.google.android.gms.drive.metadata.CustomPropertyKey;
         import com.google.android.gms.drive.query.Filters;
         import com.google.android.gms.drive.query.Query;
         import com.google.android.gms.drive.query.SearchableField;
@@ -65,10 +77,13 @@ package com.example.antoinemaguet.snapapp;
         import com.google.android.gms.tasks.OnFailureListener;
         import com.google.android.gms.tasks.OnSuccessListener;
         import com.google.android.gms.tasks.Task;
+        import com.google.android.gms.tasks.Tasks;
 
+        import org.json.JSONArray;
         import org.json.JSONObject;
 
         import java.io.BufferedReader;
+        import java.io.ByteArrayOutputStream;
         import java.io.File;
         import java.io.FileInputStream;
         import java.io.FileOutputStream;
@@ -76,7 +91,10 @@ package com.example.antoinemaguet.snapapp;
         import java.io.InputStream;
         import java.io.InputStreamReader;
         import java.io.OutputStream;
+        import java.io.OutputStreamWriter;
+        import java.io.Writer;
         import java.nio.ByteBuffer;
+        import java.text.SimpleDateFormat;
         import java.util.ArrayList;
         import java.util.Arrays;
         import java.util.Calendar;
@@ -87,6 +105,8 @@ package com.example.antoinemaguet.snapapp;
         import java.util.Map;
         import java.util.concurrent.Semaphore;
         import java.util.concurrent.TimeUnit;
+
+        import static java.lang.String.valueOf;
 
 public class Camera2BasicFragment extends Fragment
         implements View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
@@ -260,14 +280,15 @@ public class Camera2BasicFragment extends Fragment
 
         @Override
         public void onImageAvailable(ImageReader reader) {
-            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile, getActivity()));
 
             JSONObject jsonTrans = MapFragment.jsonStories;
             Log.i("LAAA","file"+jsonTrans);
 
             final DriveResourceClient resourceClient = MapFragment.mDriveResourceClient;
 
-            Query query = new Query.Builder()
+
+            /*Query query = new Query.Builder()
                     .addFilter(Filters.eq(SearchableField.TITLE, "Datas.json"))
                     .build();
             Task<MetadataBuffer> queryTask = resourceClient.query(query);
@@ -333,16 +354,7 @@ public class Camera2BasicFragment extends Fragment
 
                                 }
                             });
-
-
-            Fragment frg = null;
-            frg = getFragmentManager().findFragmentByTag("unique_tag");
-            if(frg != null) {
-                final android.support.v4.app.FragmentTransaction ft = getFragmentManager().beginTransaction();
-                ft.detach(frg);
-                ft.attach(frg);
-                ft.commit();
-            }
+*/
         }
 
     };
@@ -934,8 +946,8 @@ public class Camera2BasicFragment extends Fragment
                 public void onCaptureCompleted(@NonNull CameraCaptureSession session,
                                                @NonNull CaptureRequest request,
                                                @NonNull TotalCaptureResult result) {
-                    showToast("Saved: " + mFile);
-                    Log.d(TAG, mFile.toString());
+                    //showToast("Saved: " + mFile);
+                    //Log.d(TAG, mFile.toString());
                     unlockFocus();
                 }
             };
@@ -1013,7 +1025,7 @@ public class Camera2BasicFragment extends Fragment
     /**
      * Saves a JPEG {@link Image} into the specified {@link File}.
      */
-    private static class ImageSaver implements Runnable {
+    private static class ImageSaver extends FragmentActivity implements Runnable {
 
         /**
          * The JPEG image
@@ -1023,43 +1035,129 @@ public class Camera2BasicFragment extends Fragment
          * The file we save the image into.
          */
         private final File mFile;
+        private Activity activity;
 
-        ImageSaver(Image image, File file ) {
+        ImageSaver(Image image, File file, Activity activity ) {
             mImage = image;
             mFile = file;
+            this.activity=activity;
         }
 
         @Override
         public void run() {
 
-
-
-
             ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
             byte[] bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
-            FileOutputStream output = null;
-            try {
-                output = new FileOutputStream(mFile);
-                output.write(bytes);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                mImage.close();
-                if (null != output) {
-                    try {
-                        output.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+
+            final Dialog dialog = new Dialog(this.activity);
+            dialog.setCancelable(true);
+            final DriveResourceClient resourceClient = MapFragment.mDriveResourceClient;
+
+            final View view  = this.activity.getLayoutInflater().inflate(R.layout.dialog, null);
+            dialog.setContentView(view);
+
+            ImageView image = (ImageView) view.findViewById(R.id.image);
+
+            ImageButton closeBtn = (ImageButton) view.findViewById(R.id.buttonClose);
+            ImageButton saveBtn = (ImageButton) view.findViewById(R.id.buttonSave);
+
+            final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+
+            image.setImageBitmap(rotateBmp(bitmap));
+
+            dialog.show();
+
+            closeBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dialog.dismiss();
+
                 }
-            }
+            });
+
+            saveBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    EditText text = (EditText) view.findViewById(R.id.description);
+
+
+                    final Task<DriveFolder> rootFolderTask = resourceClient.getRootFolder();
+                    final Task<DriveContents> createContentsTask = resourceClient.createContents();
+
+                    Tasks.whenAll(rootFolderTask, createContentsTask)
+                            .continueWithTask(new Continuation<Void, Task<DriveFile>>() {
+                                @Override
+                                public Task<DriveFile> then(@NonNull Task<Void> task) throws Exception {
+
+                                    DriveFolder parent = rootFolderTask.getResult();
+                                    DriveContents contents = createContentsTask.getResult();
+
+                                    OutputStream outputStream = contents.getOutputStream();
+                                    java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+                                    String text = sdf.format(new Date());
+
+                                    //Write the bitmap data
+                                    //final Bitmap image = BitmapFactory.decodeFile(mFile.getPath());
+                                    ByteArrayOutputStream bitmapStream = new ByteArrayOutputStream();
+                                    bitmap.compress(Bitmap.CompressFormat.JPEG, 10, bitmapStream);
+                                    try {
+                                        outputStream.write(bitmapStream.toByteArray());
+                                    } catch (IOException e1) {
+                                        Log.i(TAG, "Unable to write file contents.");
+                                    }
+
+                                    MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                                            .setMimeType("image/jpeg")
+                                            .setTitle("Android Photo " +text+".jpeg")
+                                            .setDescription("la")
+                                            .setCustomProperty(new CustomPropertyKey("Latitude", CustomPropertyKey.PUBLIC),valueOf(MapLocationListener.lastLoc.getLatitude()))
+                                            .setCustomProperty(new CustomPropertyKey("Longitude", CustomPropertyKey.PUBLIC), valueOf(MapLocationListener.lastLoc.getLongitude()))
+                                            .setCustomProperty(new CustomPropertyKey("ID",CustomPropertyKey.PUBLIC),text)
+                                            //.setCustomProperty(new CustomPropertyKey("1", CustomPropertyKey.PUBLIC), "blabla1")
+                                            .build();
+                                    return resourceClient.createFile(parent, changeSet, contents);
+                                }
+                            })
+                            .addOnSuccessListener(activity,
+                                    new OnSuccessListener<DriveFile>() {
+                                        @Override
+                                        public void onSuccess(DriveFile driveFile) {
+                                            Log.i("BLABLA","succes picture");
+                                        }
+                                    })
+                            .addOnFailureListener(activity, new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Log.i("BLABLA","echec picture");
+
+                                    finish();
+                                }
+                            });
+
+                    dialog.dismiss();
+
+                }
+            });
+
+
 
 
 
         }
 
+        public Bitmap rotateBmp(Bitmap bmp){
+            Matrix matrix = new Matrix();
+            //set image rotation value to 90 degrees in matrix.
+            matrix.postRotate(90);
+            //supply the original width and height, if you don't want to change the height and width of bitmap.
+            bmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(),bmp.getHeight(), matrix, true);
+            return bmp;
+        }
+
     }
+
+
 
     /**
      * Compares two {@code Size}s based on their areas.

@@ -14,5 +14,7 @@
     <string name="intro_message">Intro</string>
     <string name="file_create_error">Error create file</string>
     <string name="file_created">File created</string>
+    <string name="dialog_message">message</string>
+    <string name="dialog_title">title</string>
 
 </resources>
