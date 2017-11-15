@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "172012169849",
+    "firebase_url": "https://snapapp-cpe.firebaseio.com",
+    "project_id": "snapapp-cpe",
+    "storage_bucket": "snapapp-cpe.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:172012169849:android:3e12670e231fe16b",
+        "android_client_info": {
+          "package_name": "com.example.antoinemaguet.snapapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "172012169849-s0ge9mu46rtcg84sf91p31v3abp6r09j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDcwIdrXyC3kiuya1W_qvunxjpg8Aq87x8"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
