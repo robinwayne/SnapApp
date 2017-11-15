@@ -1,16 +1,18 @@
 package com.example.antoinemaguet.snapapp;
 
+import android.graphics.Bitmap;
+
 /**
  * Created by antoinemaguet on 03/11/2017.
  */
 
 public class ListObjectRecyclerView {
     private String text;
-    private String imagePath;
+    private Bitmap image;
 
-    public ListObjectRecyclerView(String text, String imageUrl) {
+    public ListObjectRecyclerView(String text, Bitmap image) {
         this.text = text;
-        this.imagePath = imageUrl;
+        this.image = image;
     }
     public ListObjectRecyclerView(String text) {
         this.text = text;
@@ -20,15 +22,15 @@ public class ListObjectRecyclerView {
         return text;
     }
 
-    public String getImagePath() {
-        return imagePath;
+    public Bitmap getImagePath() {
+        return image;
     }
 
     public void setText(String text) {
         this.text = text;
     }
 
-    public void setImagePath(String imagePath) {
-        this.imagePath = imagePath;
+    public void setImagePath(Bitmap image) {
+        this.image = image;
     }
 }

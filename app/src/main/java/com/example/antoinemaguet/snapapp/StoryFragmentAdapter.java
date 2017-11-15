@@ -26,14 +26,12 @@ public class StoryFragmentAdapter extends RecyclerView.Adapter<StoryFragmentAdap
         public ViewHolder(View v) {
             super(v);
             textView = v.findViewById(R.id.mytv);
-            imageView= v.findViewById(R.id.myiv);
+            imageView= (ImageView) v.findViewById(R.id.myiv);
         }
 
         public void bind(ListObjectRecyclerView mediaObject){
             textView.setText(mediaObject.getText());
-            if(mediaObject.getImagePath()!=null) {
-                Picasso.with(imageView.getContext()).load(mediaObject.getImagePath()).into(imageView);
-            }
+            imageView.setImageBitmap(mediaObject.getImagePath());
         }
     }
 

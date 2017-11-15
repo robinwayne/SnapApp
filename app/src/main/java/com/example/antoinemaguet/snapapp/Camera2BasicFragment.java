@@ -1079,7 +1079,7 @@ public class Camera2BasicFragment extends Fragment
             saveBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    EditText text = (EditText) view.findViewById(R.id.description);
+                    final EditText text_description = (EditText) view.findViewById(R.id.description);
 
 
                     final Task<DriveFolder> rootFolderTask = resourceClient.getRootFolder();
@@ -1095,7 +1095,7 @@ public class Camera2BasicFragment extends Fragment
 
                                     OutputStream outputStream = contents.getOutputStream();
                                     java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-                                    String text = sdf.format(new Date());
+                                    String text_date = sdf.format(new Date());
 
                                     //Write the bitmap data
                                     //final Bitmap image = BitmapFactory.decodeFile(mFile.getPath());
@@ -1109,11 +1109,11 @@ public class Camera2BasicFragment extends Fragment
 
                                     MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
                                             .setMimeType("image/jpeg")
-                                            .setTitle("Android Photo " +text+".jpeg")
-                                            .setDescription("la")
+                                            .setTitle("Android Photo " +text_date+".jpeg")
+                                            .setDescription(text_description.getText().toString())
                                             .setCustomProperty(new CustomPropertyKey("Latitude", CustomPropertyKey.PUBLIC),valueOf(MapLocationListener.lastLoc.getLatitude()))
                                             .setCustomProperty(new CustomPropertyKey("Longitude", CustomPropertyKey.PUBLIC), valueOf(MapLocationListener.lastLoc.getLongitude()))
-                                            .setCustomProperty(new CustomPropertyKey("ID",CustomPropertyKey.PUBLIC),text)
+                                            .setCustomProperty(new CustomPropertyKey("ID",CustomPropertyKey.PUBLIC),text_date)
                                             //.setCustomProperty(new CustomPropertyKey("1", CustomPropertyKey.PUBLIC), "blabla1")
                                             .build();
                                     return resourceClient.createFile(parent, changeSet, contents);
