@@ -1,3 +1,4 @@
+/*
 package com.example.antoinemaguet.snapapp;
 
 import android.Manifest;
@@ -144,4 +145,4 @@ public class LoginActivity extends AppCompatActivity {
 
 
 
-}
+}*/
