@@ -10,7 +10,6 @@ import android.graphics.Rect;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Parcel;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -37,11 +36,9 @@ import com.google.android.gms.drive.Metadata;
 import com.google.android.gms.drive.MetadataBuffer;
 import com.google.android.gms.drive.MetadataChangeSet;
 import com.google.android.gms.drive.metadata.CustomPropertyKey;
-import com.google.android.gms.drive.query.Filter;
 import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
-import com.google.android.gms.drive.query.internal.zzj;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.tasks.Continuation;
@@ -94,7 +91,6 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
 
     public static DriveResourceClient mDriveResourceClient;
     public static JSONObject jsonStories;
-    public static JSONObject jsonCloseStories;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -287,8 +283,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
         //createFileInAppFolder();
         //readStoriesFile();
         //createFolder();
-        //listFiles();
-        closestStories();
+        listFiles();
     }
 
 
@@ -338,7 +333,9 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
                         jo2.put("text", "essai3");
 
                         JSONArray ja = new JSONArray();
-
+                        ja.put(jo);
+                        ja.put(jo1);
+                        ja.put(jo2);
                         JSONObject mainObj = new JSONObject();
                         mainObj.put("datas", ja);
 
@@ -597,226 +594,6 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
         // [END query_results]
     }
 
-
-    public void closestStories() {
-
-        Query query = new Query.Builder()
-                .addFilter(Filters.eq(SearchableField.TITLE, "Datas.json"))
-                .build();
-        Task<MetadataBuffer> queryTask = getDriveResourceClient().query(query);
-        queryTask
-                .addOnSuccessListener(getActivity(),
-                        new OnSuccessListener<MetadataBuffer>() {
-                            @Override
-                            public void onSuccess(MetadataBuffer metadataBuffer) {
-                                DriveId driveId = metadataBuffer.get(0).getDriveId();
-                                DriveFile filerr = driveId.asDriveFile();
-                                Task<DriveContents> openFileTask =
-                                        getDriveResourceClient().openFile(filerr, DriveFile.MODE_READ_ONLY);
-                                openFileTask
-                                        .continueWithTask(new Continuation<DriveContents, Task<Void>>() {
-                                            @Override
-                                            public Task<Void> then(@NonNull Task<DriveContents> task) throws Exception {
-                                                DriveContents contents = task.getResult();
-                                                // Process contents...
-                                                try (BufferedReader reader = new BufferedReader(
-                                                        new InputStreamReader(contents.getInputStream()))) {
-                                                    StringBuilder builder = new StringBuilder();
-                                                    String line;
-                                                    while ((line = reader.readLine()) != null) {
-                                                        builder.append(line).append("\n");
-                                                    }
-                                                    Log.i("BLABLA", "File Readable" +builder.toString());
-                                                    jsonStories = new JSONObject(builder.toString());
-                                                    jsonCloseStories = getCloseStories(MapLocationListener.lastLoc,jsonStories);
-                                                    loadPictures();
-                                                }
-                                                Task<Void> discardTask = getDriveResourceClient().discardContents(contents);
-                                                return discardTask;
-                                            }
-                                        })
-                                        .addOnFailureListener(new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(@NonNull Exception e) {
-                                                // Handle failure
-                                            }
-                                        });
-
-                            }
-                        })
-                .addOnFailureListener(getActivity(), new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        // Handle failure...
-                    }
-                });
-
-
-
-    }
-
-    private void loadPictures() {
-
-        Query query2;
-        Filter test = null;
-
-        if (jsonCloseStories != null) {
-
-            try {
-                JSONArray arr = jsonCloseStories.getJSONArray("datas");
-
-                for(int i=0;i<arr.length();i++){
-                    if(arr.getJSONObject(i) != null) {
-                        Filter teste = null;
-                        teste = Filters.eq(SearchableField.TITLE, arr.getJSONObject(i).get("imageTitle").toString());
-                        if(i>0){
-                            test = Filters.or(test, Filters.eq(SearchableField.TITLE, arr.getJSONObject(i).get("imageTitle").toString()));
-                        }else{
-                            test=teste;
-                        }
-                    }
-                }
-
-
-            }catch (JSONException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        Log.i("BLABLAB", "JSON debug "+test);
-        query2 = new Query.Builder()
-                .addFilter(test)
-                .build();
-
-
-        // [START query_files]
-        Task<MetadataBuffer> queryTask = getDriveResourceClient().query(query2);
-        // [END query_files]
-
-
-        // [START query_results]
-        queryTask
-                .addOnSuccessListener(
-                        new OnSuccessListener<MetadataBuffer>() {
-                            @Override
-                            public void onSuccess(MetadataBuffer metadataBufferBis) {
-                                metadataBuffer=metadataBufferBis;
-                                // Handle results...
-                                // [START_EXCLUDE]
-                                JSONObject mainObj = new JSONObject();
-                                final BitmapFactory.Options options = new BitmapFactory.Options();
-                                options.inSampleSize = 4;
-                                myDataSet.clear();
-                                for (Iterator<Metadata> i = metadataBuffer.iterator(); i.hasNext();) {
-                                    Metadata item = i.next();
-
-                                    //get the title
-                                    //final String title = item.getTitle();
-                                    //final String longitude = item.getTitle();
-                                    final String latitude = item.getCustomProperties().get(new CustomPropertyKey("Latitude", CustomPropertyKey.PUBLIC));
-                                    final String longitude = item.getCustomProperties().get(new CustomPropertyKey("Longitude", CustomPropertyKey.PUBLIC));
-
-                                    Log.i("BLABLA","Latitude est :"+latitude);
-                                    //get the description
-                                    final String description;
-                                    if (item.getDescription() != null) {
-                                        description = item.getDescription();
-                                    }
-                                    else{
-                                        description = "";
-                                    }
-                                    try {
-                                        JSONObject jo = new JSONObject();
-                                        jo.put("latitude", latitude);
-                                        jo.put("longitude", longitude);
-                                        jo.put("text", description);
-                                        ja.put(jo);
-                                        mainObj.put("datas", ja);
-                                        Log.i("BLABLA", "json file"+ mainObj.toString() );
-                                    }catch (JSONException e) {
-
-                                    }
-                                    //get the picture
-                                    DriveId mId = item.getDriveId();
-                                    DriveFile file = mId.asDriveFile();
-
-                                    Task<DriveContents> openFileTask =
-                                            getDriveResourceClient().openFile(file, DriveFile.MODE_READ_ONLY);
-                                    openFileTask
-                                            .continueWithTask(new Continuation<DriveContents, Task<Void>>() {
-                                                @Override
-                                                public Task<Void> then(@NonNull Task<DriveContents> task) throws Exception {
-
-                                                    DriveContents contents = task.getResult();
-                                                    // Process contents...
-                                                    InputStream mInputStream = contents.getInputStream();
-                                                    Rect tester= new Rect();
-                                                    Bitmap bitmap1 = BitmapFactory.decodeStream(mInputStream, tester,options);
-
-                                                    //add title description image to myDataSet
-                                                    myDataSet.add(new ListObjectRecyclerView(description,bitmap1));
-                                                    Log.i("BLABLA","new object recycler view"+ description);
-                                                    Task<Void> discardTask = getDriveResourceClient().discardContents(contents);
-                                                    return discardTask;
-
-                                                }
-                                            })
-                                            .addOnFailureListener(new OnFailureListener() {
-                                                @Override
-                                                public void onFailure(@NonNull Exception e) {
-                                                    Log.i("BLABLA","faileddddd");
-                                                }
-                                            });
-                                    //metadataBuffer.release();
-
-                                }
-                                //jsonStories=mainObj;
-
-                                metadataBuffer.release();
-                            }
-                        })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-
-                        Log.i("BLABLA", "Error retrieving files");
-
-                    }
-                });
-        // [END query_results]
-    }
-
-    private JSONObject getCloseStories(Location location, JSONObject jsonStories){
-
-
-        JSONObject jsonTrans= new JSONObject();
-        JSONArray ja = new JSONArray();
-        if (location == null){
-            location=mLastLocation;
-        }
-        try{
-            JSONArray arr = jsonStories.getJSONArray("datas");
-            for(int i=0;i<arr.length();i++){
-
-                if(arr.getJSONObject(i) != null) {
-                    JSONObject jsonObj = arr.getJSONObject(i);
-                    Location tempLoc = new Location("tempLoc");
-                    tempLoc.setLongitude(Double.parseDouble(jsonObj.get("longitude").toString()));
-                    tempLoc.setLatitude(Double.parseDouble(jsonObj.get("latitude").toString()));
-                    Float distance = location.distanceTo(tempLoc);
-
-                    if (distance < 5000) {
-                        JSONObject field = arr.getJSONObject(i);
-                        ja.put(field);
-                        Log.i("BLABLA", "close debug " + field.get("imageTitle").toString());
-                    }
-                }
-            }
-            jsonTrans.put("datas", ja);
-        }catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
-        return jsonTrans;
-    }
 
 
 

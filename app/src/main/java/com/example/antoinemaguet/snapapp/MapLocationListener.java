@@ -61,9 +61,7 @@ public class MapLocationListener implements LocationListener {
     public void onLocationChanged(final Location location)
     {
         lastLoc=location;
-        final JSONObject jsonDisplay=MapFragment.jsonCloseStories;
-        Log.i("BLABLA","LocationChanged"+jsonDisplay);
-
+        final JSONObject jsonDisplay=this.jsonStories;
         IconFactory iconFactory =IconFactory.getInstance(this.activity);
         final Icon icon = iconFactory.fromResource(R.drawable.ic_blue_marker);
         Log.i("BLABLA","LocationChanged");
