@@ -23,8 +23,10 @@ import java.util.List;
 public class CloseStories {
 
 
-    public List<ListObjectRecyclerView> getCloseStories(Location location, JSONObject jsonStories){
-        List<ListObjectRecyclerView> myDataSet=new ArrayList<>();
+    private JSONObject getCloseStories(Location location, JSONObject jsonStories){
+        JSONObject jsonTrans= new JSONObject();
+        JSONArray ja = new JSONArray();
+
         try{
             JSONArray arr = jsonStories.getJSONArray("datas");
             for(int i=0;i<arr.length();i++){
@@ -33,33 +35,17 @@ public class CloseStories {
                 Float distance = location.distanceTo(tempLoc);
                 if (distance > 5000){
                     JSONObject field = arr.getJSONObject(i);
-                    myDataSet.add(new ListObjectRecyclerView(jsonObj.getString("text")));
+                    ja.put(field);
+
                 }
             }
+            jsonTrans.put("datas", ja);
         }catch (JSONException e) {
             throw new RuntimeException(e);
         }
-        return myDataSet;
+        return jsonTrans;
     }
 
-    public List<LatLng> getCloseStoriesCoord(Location location, JSONObject jsonStories){
-        List<LatLng> myDataSet=new ArrayList<>();
-        try{
-            JSONArray arr = jsonStories.getJSONArray("datas");
-            for(int i=0;i<arr.length();i++){
-                JSONObject jsonObj = arr.getJSONObject(i);
-                Location tempLoc= new Location("tempLoc");
-                tempLoc.setLongitude(jsonObj.getDouble("longitude"));
-                tempLoc.setLatitude(jsonObj.getDouble("latitude"));
-                Float distance = location.distanceTo(tempLoc);
-                if (distance < 5000){
-                    myDataSet.add(new LatLng(tempLoc));
-                }
-            }
-        }catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
-        return myDataSet;
-    }
+
 
 }
