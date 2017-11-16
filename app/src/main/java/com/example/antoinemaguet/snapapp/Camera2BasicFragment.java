@@ -1063,8 +1063,9 @@ public class Camera2BasicFragment extends Fragment
             ImageButton saveBtn = (ImageButton) view.findViewById(R.id.buttonSave);
 
             final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            final Bitmap bitmaprotate = rotateBmp(bitmap);
 
-            image.setImageBitmap(rotateBmp(bitmap));
+            image.setImageBitmap(bitmaprotate);
 
             dialog.show();
 
@@ -1100,7 +1101,7 @@ public class Camera2BasicFragment extends Fragment
                                     //Write the bitmap data
                                     //final Bitmap image = BitmapFactory.decodeFile(mFile.getPath());
                                     ByteArrayOutputStream bitmapStream = new ByteArrayOutputStream();
-                                    bitmap.compress(Bitmap.CompressFormat.JPEG, 10, bitmapStream);
+                                    bitmaprotate.compress(Bitmap.CompressFormat.JPEG, 10, bitmapStream);
                                     try {
                                         outputStream.write(bitmapStream.toByteArray());
                                     } catch (IOException e1) {

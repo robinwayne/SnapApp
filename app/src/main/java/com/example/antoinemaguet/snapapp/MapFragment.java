@@ -514,7 +514,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
                                 JSONObject mainObj = new JSONObject();
                                 final BitmapFactory.Options options = new BitmapFactory.Options();
                                 options.inSampleSize = 4;
-
+                                myDataSet.clear();
                                 for (Iterator<Metadata> i = metadataBuffer.iterator(); i.hasNext();) {
                                     Metadata item = i.next();
 
@@ -579,6 +579,8 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
 
                                 }
                                 jsonStories=mainObj;
+
+                                metadataBuffer.release();
                             }
                         })
                 .addOnFailureListener(new OnFailureListener() {

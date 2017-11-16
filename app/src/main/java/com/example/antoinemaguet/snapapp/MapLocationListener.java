@@ -69,11 +69,9 @@ public class MapLocationListener implements LocationListener {
         this.mapView.getMapAsync(new OnMapReadyCallback() {
             @Override
             public void onMapReady(MapboxMap mapboxMap) {
-                if(currentPos==null) {
-                    currentPos=mapboxMap.addMarker(new MarkerOptions().position(new LatLng(location)));
-                }else{
-                    currentPos.setPosition(new LatLng(location));
-                }
+                mapboxMap.clear();
+                    mapboxMap.addMarker(new MarkerOptions().position(new LatLng(location)));
+                    mapboxMap.addMarker(new MarkerOptions().position(new LatLng(location)));
                 if(jsonDisplay != null) {
                     try {
                         JSONArray arr = jsonDisplay.getJSONArray("datas");
