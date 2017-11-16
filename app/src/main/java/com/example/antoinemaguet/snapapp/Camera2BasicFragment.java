@@ -288,73 +288,7 @@ public class Camera2BasicFragment extends Fragment
             final DriveResourceClient resourceClient = MapFragment.mDriveResourceClient;
 
 
-            /*Query query = new Query.Builder()
-                    .addFilter(Filters.eq(SearchableField.TITLE, "Datas.json"))
-                    .build();
-            Task<MetadataBuffer> queryTask = resourceClient.query(query);
 
-            queryTask
-                    .addOnSuccessListener(FragmentsActivity.activity,
-                            new OnSuccessListener<MetadataBuffer>() {
-                                @Override
-                                public void onSuccess(MetadataBuffer metadataBuffer) {
-                                    DriveId driveId = metadataBuffer.get(0).getDriveId();
-                                    DriveFile filerr = driveId.asDriveFile();
-                                    Task<DriveContents> openTask =
-                                            resourceClient.openFile(filerr, DriveFile.MODE_READ_WRITE);
-                                    openTask.continueWithTask(new Continuation<DriveContents, Task<Void>>() {
-                                        @Override
-                                        public Task<Void> then(@NonNull Task<DriveContents> task) throws Exception {
-                                            DriveContents driveContents = task.getResult();
-                                            ParcelFileDescriptor pfd = driveContents.getParcelFileDescriptor();
-
-                                            long bytesToSkip = pfd.getStatSize();
-                                            bytesToSkip=bytesToSkip-2;
-                                            try (InputStream in = new FileInputStream(pfd.getFileDescriptor())) {
-                                                // Skip to end of file
-                                                while (bytesToSkip > 2) {
-                                                    long skipped = in.skip(bytesToSkip);
-                                                    bytesToSkip -= skipped;
-                                                }
-                                            }
-                                            try (OutputStream out = new FileOutputStream(pfd.getFileDescriptor())) {
-                                                String latitude = String.valueOf(MapLocationListener.lastLoc.getLatitude());
-                                                String longitude = String.valueOf(MapLocationListener.lastLoc.getLongitude());
-                                                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm");
-                                                String text = sdf.format(new Date());
-                                                String toWrite = ",{\"latitude\":\""+ latitude +"\",\"longitude\":\""+longitude+"\",\"text\":\"" + text + "\"}]}";
-                                                out.write(toWrite.getBytes());
-                                            }
-
-                                            MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
-                                                    .setStarred(true)
-                                                    .setLastViewedByMeDate(new Date())
-                                                    .build();
-                                            Task<Void> commitTask =
-                                                    resourceClient.commitContents(driveContents, changeSet);
-
-                                            return commitTask;
-                                        }
-                                    })
-                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                @Override
-                                                public void onSuccess(Void aVoid) {
-                                                    Log.i("LAAA","Updatefile");
-
-                                                }
-                                            })
-                                            .addOnFailureListener(new OnFailureListener() {
-                                                @Override
-                                                public void onFailure(@NonNull Exception e) {
-                                                    // Handle failure
-                                                }
-                                            });
-
-
-
-                                }
-                            });
-*/
         }
 
     };
@@ -1065,6 +999,9 @@ public class Camera2BasicFragment extends Fragment
             final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
             final Bitmap bitmaprotate = rotateBmp(bitmap);
 
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+            final String text_date = sdf.format(new Date());
+
             image.setImageBitmap(bitmaprotate);
 
             dialog.show();
@@ -1095,8 +1032,7 @@ public class Camera2BasicFragment extends Fragment
                                     DriveContents contents = createContentsTask.getResult();
 
                                     OutputStream outputStream = contents.getOutputStream();
-                                    java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-                                    String text_date = sdf.format(new Date());
+
 
                                     //Write the bitmap data
                                     //final Bitmap image = BitmapFactory.decodeFile(mFile.getPath());
@@ -1110,11 +1046,8 @@ public class Camera2BasicFragment extends Fragment
 
                                     MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
                                             .setMimeType("image/jpeg")
-                                            .setTitle("Android Photo " +text_date+".jpeg")
+                                            .setTitle(text_date+".jpeg")
                                             .setDescription(text_description.getText().toString())
-                                            .setCustomProperty(new CustomPropertyKey("Latitude", CustomPropertyKey.PUBLIC),valueOf(MapLocationListener.lastLoc.getLatitude()))
-                                            .setCustomProperty(new CustomPropertyKey("Longitude", CustomPropertyKey.PUBLIC), valueOf(MapLocationListener.lastLoc.getLongitude()))
-                                            .setCustomProperty(new CustomPropertyKey("ID",CustomPropertyKey.PUBLIC),text_date)
                                             //.setCustomProperty(new CustomPropertyKey("1", CustomPropertyKey.PUBLIC), "blabla1")
                                             .build();
                                     return resourceClient.createFile(parent, changeSet, contents);
@@ -1141,6 +1074,72 @@ public class Camera2BasicFragment extends Fragment
                 }
             });
 
+            Query query = new Query.Builder()
+                    .addFilter(Filters.eq(SearchableField.TITLE, "Datas.json"))
+                    .build();
+            Task<MetadataBuffer> queryTask = resourceClient.query(query);
+
+            queryTask
+                    .addOnSuccessListener(activity,
+                            new OnSuccessListener<MetadataBuffer>() {
+                                @Override
+                                public void onSuccess(MetadataBuffer metadataBuffer) {
+                                    DriveId driveId = metadataBuffer.get(0).getDriveId();
+                                    DriveFile filerr = driveId.asDriveFile();
+                                    Task<DriveContents> openTask =
+                                            resourceClient.openFile(filerr, DriveFile.MODE_READ_WRITE);
+                                    openTask.continueWithTask(new Continuation<DriveContents, Task<Void>>() {
+                                        @Override
+                                        public Task<Void> then(@NonNull Task<DriveContents> task) throws Exception {
+                                            DriveContents driveContents = task.getResult();
+                                            ParcelFileDescriptor pfd = driveContents.getParcelFileDescriptor();
+
+                                            long bytesToSkip = pfd.getStatSize();
+                                            bytesToSkip=bytesToSkip-2;
+                                            try (InputStream in = new FileInputStream(pfd.getFileDescriptor())) {
+                                                // Skip to end of file
+                                                while (bytesToSkip > 2) {
+                                                    long skipped = in.skip(bytesToSkip);
+                                                    bytesToSkip -= skipped;
+                                                }
+                                            }
+                                            try (OutputStream out = new FileOutputStream(pfd.getFileDescriptor())) {
+                                                String latitude = String.valueOf(MapLocationListener.lastLoc.getLatitude());
+                                                String longitude = String.valueOf(MapLocationListener.lastLoc.getLongitude());
+                                                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm");
+                                                String text = sdf.format(new Date());
+                                                String toWrite = ",{\"latitude\":\""+ latitude +"\",\"longitude\":\""+longitude+"\",\"imageTitle\":\"" + text_date + ".jpeg\"}]}";
+                                                out.write(toWrite.getBytes());
+                                            }
+
+                                            MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                                                    .setStarred(true)
+                                                    .setLastViewedByMeDate(new Date())
+                                                    .build();
+                                            Task<Void> commitTask =
+                                                    resourceClient.commitContents(driveContents, changeSet);
+
+                                            return commitTask;
+                                        }
+                                    })
+                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(Void aVoid) {
+                                                    Log.i("LAAA","Updatefile");
+
+                                                }
+                                            })
+                                            .addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    // Handle failure
+                                                }
+                                            });
+
+
+
+                                }
+                            });
 
 
 

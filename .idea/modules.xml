@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/SnapApp.iml" filepath="$PROJECT_DIR$/SnapApp.iml" />
       <module fileurl="file://C:\Users\Robin\Desktop\CPE\5ETI\ProjetAndroid\temporaire\SnapApp.iml" filepath="C:\Users\Robin\Desktop\CPE\5ETI\ProjetAndroid\temporaire\SnapApp.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/temporaire.iml" filepath="$PROJECT_DIR$/temporaire.iml" />
