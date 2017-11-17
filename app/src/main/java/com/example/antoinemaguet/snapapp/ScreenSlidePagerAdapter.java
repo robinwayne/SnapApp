@@ -3,7 +3,8 @@ package com.example.antoinemaguet.snapapp;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.app.FragmentTransaction;
+
+import com.example.antoinemaguet.snapapp.Camera2BasicFragment;
 
 /**
  * Created by antoinemaguet on 10/11/2017.

@@ -9,12 +9,9 @@ package com.example.antoinemaguet.snapapp;
         import android.app.Activity;
         import android.app.AlertDialog;
         import android.app.Dialog;
-        import android.app.FragmentManager;
-        import android.app.FragmentTransaction;
 
         import android.content.Context;
         import android.content.DialogInterface;
-        import android.content.Intent;
         import android.content.pm.PackageManager;
         import android.content.res.Configuration;
         import android.graphics.Bitmap;
@@ -41,6 +38,7 @@ package com.example.antoinemaguet.snapapp;
         import android.os.HandlerThread;
         import android.os.ParcelFileDescriptor;
         import android.support.annotation.NonNull;
+        import android.support.annotation.RequiresPermission;
         import android.support.v4.app.ActivityCompat;
         import android.support.v4.app.DialogFragment;
         import android.support.v4.app.Fragment;
@@ -54,14 +52,14 @@ package com.example.antoinemaguet.snapapp;
         import android.view.TextureView;
         import android.view.View;
         import android.view.ViewGroup;
-        import android.widget.Button;
         import android.widget.EditText;
         import android.widget.ImageButton;
         import android.widget.ImageView;
-        import android.widget.ProgressBar;
-        import android.widget.TextView;
         import android.widget.Toast;
 
+        import com.example.antoinemaguet.snapapp.MapFragment;
+        import com.example.antoinemaguet.snapapp.MapLocationListener;
+        import com.example.antoinemaguet.snapapp.R;
         import com.google.android.gms.drive.DriveContents;
         import com.google.android.gms.drive.DriveFile;
         import com.google.android.gms.drive.DriveFolder;
@@ -69,7 +67,6 @@ package com.example.antoinemaguet.snapapp;
         import com.google.android.gms.drive.DriveResourceClient;
         import com.google.android.gms.drive.MetadataBuffer;
         import com.google.android.gms.drive.MetadataChangeSet;
-        import com.google.android.gms.drive.metadata.CustomPropertyKey;
         import com.google.android.gms.drive.query.Filters;
         import com.google.android.gms.drive.query.Query;
         import com.google.android.gms.drive.query.SearchableField;
@@ -79,30 +76,22 @@ package com.example.antoinemaguet.snapapp;
         import com.google.android.gms.tasks.Task;
         import com.google.android.gms.tasks.Tasks;
 
-        import org.json.JSONArray;
         import org.json.JSONObject;
 
-        import java.io.BufferedReader;
         import java.io.ByteArrayOutputStream;
         import java.io.File;
         import java.io.FileInputStream;
         import java.io.FileOutputStream;
         import java.io.IOException;
         import java.io.InputStream;
-        import java.io.InputStreamReader;
         import java.io.OutputStream;
-        import java.io.OutputStreamWriter;
-        import java.io.Writer;
         import java.nio.ByteBuffer;
-        import java.text.SimpleDateFormat;
         import java.util.ArrayList;
         import java.util.Arrays;
-        import java.util.Calendar;
         import java.util.Collections;
         import java.util.Comparator;
         import java.util.Date;
         import java.util.List;
-        import java.util.Map;
         import java.util.concurrent.Semaphore;
         import java.util.concurrent.TimeUnit;
 
@@ -285,7 +274,7 @@ public class Camera2BasicFragment extends Fragment
             JSONObject jsonTrans = MapFragment.jsonStories;
             Log.i("LAAA","file"+jsonTrans);
 
-            final DriveResourceClient resourceClient = MapFragment.mDriveResourceClient;
+            final DriveResourceClient resourceClient = ReadStoriesDrive.mDriveResourceClient;
 
 
 
@@ -627,7 +616,7 @@ public class Camera2BasicFragment extends Fragment
                 // Check if the flash is supported.
                 Boolean available = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
                 mFlashSupported = available == null ? false : available;
-
+                mFlashSupported = false;
                 mCameraId = cameraId;
                 return;
             }
@@ -986,7 +975,7 @@ public class Camera2BasicFragment extends Fragment
 
             final Dialog dialog = new Dialog(this.activity);
             dialog.setCancelable(true);
-            final DriveResourceClient resourceClient = MapFragment.mDriveResourceClient;
+            final DriveResourceClient resourceClient = ReadStoriesDrive.mDriveResourceClient;
 
             final View view  = this.activity.getLayoutInflater().inflate(R.layout.dialog, null);
             dialog.setContentView(view);
@@ -1057,13 +1046,13 @@ public class Camera2BasicFragment extends Fragment
                                     new OnSuccessListener<DriveFile>() {
                                         @Override
                                         public void onSuccess(DriveFile driveFile) {
-                                            Log.i("BLABLA","succes picture");
+                                            Log.i("BLABLAB","succes picture");
                                         }
                                     })
                             .addOnFailureListener(activity, new OnFailureListener() {
                                 @Override
                                 public void onFailure(@NonNull Exception e) {
-                                    Log.i("BLABLA","echec picture");
+                                    Log.i("BLABLAB","echec picture");
 
                                     finish();
                                 }
