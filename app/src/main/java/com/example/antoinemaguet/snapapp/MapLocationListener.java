@@ -4,7 +4,10 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -21,13 +24,21 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.drive.MetadataBuffer;
+import com.google.android.gms.drive.DriveContents;
+import com.google.android.gms.drive.DriveFile;
+import com.google.android.gms.drive.DriveId;
+import com.google.android.gms.drive.Metadata;
+
+import com.google.android.gms.drive.metadata.CustomPropertyKey;
 import com.google.android.gms.drive.query.Filter;
 import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
@@ -45,6 +56,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.InputStream;
+import java.util.Iterator;
 import java.util.List;
 
 import timber.log.Timber;
@@ -61,7 +74,7 @@ public class MapLocationListener implements LocationListener {
     private Marker currentPos;
     private Activity activity;
     private JSONObject jsonStories;
-
+    private Metadata metadataBuffer;
     public static Location lastLoc;
 
     MapLocationListener(MapView mapView, Marker pos, Activity activity, JSONObject jsonStories) {
@@ -121,7 +134,7 @@ public class MapLocationListener implements LocationListener {
                         final View view = activity.getLayoutInflater().inflate(R.layout.marker_popup, null,true);
                         marker_popup.setContentView(view);
 
-                        ImageView picture_story = (ImageView) view.findViewById(R.id.image_linked_marker);
+                        final ImageView picture_story = (ImageView) view.findViewById(R.id.image_linked_marker);
                         TextView description_story = (TextView) view.findViewById(R.id.marker_description);
 
                         Query query_picture_marker;
@@ -153,12 +166,70 @@ public class MapLocationListener implements LocationListener {
                                             .addFilter(test)
                                             .build();
 
-                                    Task<MetadataBuffer> queryTask = MapFragment.mDriveResourceClient.query(query_picture_marker);
+                                    Task<Metadata> queryTask = MapFragment.mDriveResourceClient.query(query_picture_marker);
 
-                                    result = true;
+                                    queryTask
+                                            .addOnSuccessListener(
+                                                    new OnSuccessListener<Metadata>() {
+                                                        @Override
+                                                        public void onSuccess(Metadata metadata) {
+
+                                                            Metadata item = metadata;
+
+                                                            JSONObject mainObj = new JSONObject();
+                                                            final BitmapFactory.Options options = new BitmapFactory.Options();
+                                                            options.inSampleSize = 2;
+
+                                                            //get the picture
+                                                            DriveId mId = item.getDriveId();
+                                                            DriveFile file = mId.asDriveFile();
+
+                                                            Task<DriveContents> openFileTask =
+                                                                    MapFragment.mDriveResourceClient.openFile(file, DriveFile.MODE_READ_ONLY);
+                                                            openFileTask
+                                                                    .continueWithTask(new Continuation<DriveContents, Task<Void>>() {
+                                                                        @Override
+                                                                        public Task<Void> then(@NonNull Task<DriveContents> task) throws Exception {
+
+                                                                            DriveContents contents = task.getResult();
+                                                                            // Process contents...
+                                                                            InputStream mInputStream = contents.getInputStream();
+                                                                            Rect tester = new Rect();
+                                                                            Bitmap bitmap1 = BitmapFactory.decodeStream(mInputStream, tester, options);
+                                                                            picture_story.setImageBitmap(bitmap1);
+
+
+                                                                            Log.i("marker", "after setImageBitmap");
+
+
+
+                                                                            Task<Void> discardTask = MapFragment.mDriveResourceClient.discardContents(contents);
+                                                                            return discardTask;
+
+                                                                        }
+                                                                    })
+                                                                    .addOnFailureListener(new OnFailureListener() {
+                                                                        @Override
+                                                                        public void onFailure(@NonNull Exception e) {
+                                                                            Log.i("BLABLA", "faileddddd");
+                                                                        }
+                                                                    });
+                                                        }
+
+                                                    })
+                                            .addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+
+                                                    Log.i("BLABLA", "Error retrieving files");
+
+                                                }
+                                            });
+                                    // [END query_results]
 
                                 }
                             }
+
                         } catch (JSONException e) {
                             throw new RuntimeException(e);
                         }
