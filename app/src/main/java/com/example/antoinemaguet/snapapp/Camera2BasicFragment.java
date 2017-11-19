@@ -38,7 +38,6 @@ package com.example.antoinemaguet.snapapp;
         import android.os.HandlerThread;
         import android.os.ParcelFileDescriptor;
         import android.support.annotation.NonNull;
-        import android.support.annotation.RequiresPermission;
         import android.support.v4.app.ActivityCompat;
         import android.support.v4.app.DialogFragment;
         import android.support.v4.app.Fragment;
@@ -56,10 +55,6 @@ package com.example.antoinemaguet.snapapp;
         import android.widget.ImageButton;
         import android.widget.ImageView;
         import android.widget.Toast;
-
-        import com.example.antoinemaguet.snapapp.MapFragment;
-        import com.example.antoinemaguet.snapapp.MapLocationListener;
-        import com.example.antoinemaguet.snapapp.R;
         import com.google.android.gms.drive.DriveContents;
         import com.google.android.gms.drive.DriveFile;
         import com.google.android.gms.drive.DriveFolder;
@@ -75,9 +70,7 @@ package com.example.antoinemaguet.snapapp;
         import com.google.android.gms.tasks.OnSuccessListener;
         import com.google.android.gms.tasks.Task;
         import com.google.android.gms.tasks.Tasks;
-
         import org.json.JSONObject;
-
         import java.io.ByteArrayOutputStream;
         import java.io.File;
         import java.io.FileInputStream;
@@ -95,7 +88,6 @@ package com.example.antoinemaguet.snapapp;
         import java.util.concurrent.Semaphore;
         import java.util.concurrent.TimeUnit;
 
-        import static java.lang.String.valueOf;
 
 public class Camera2BasicFragment extends Fragment
         implements View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
@@ -969,12 +961,15 @@ public class Camera2BasicFragment extends Fragment
         @Override
         public void run() {
 
+            //on recupere l'image et on la stock dans un buffer
             ByteBuffer buffer = mImage.getPlanes()[0].getBuffer();
             byte[] bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
 
+            //On cree une fenetre de dialogue
             final Dialog dialog = new Dialog(this.activity);
             dialog.setCancelable(true);
+
             final DriveResourceClient resourceClient = ReadStoriesDrive.mDriveResourceClient;
 
             final View view  = this.activity.getLayoutInflater().inflate(R.layout.dialog, null);
@@ -993,8 +988,10 @@ public class Camera2BasicFragment extends Fragment
 
             image.setImageBitmap(bitmaprotate);
 
+            //On rempli le dialogue avec l'image
             dialog.show();
 
+            //On fereme le dialogue
             closeBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -1003,6 +1000,9 @@ public class Camera2BasicFragment extends Fragment
                 }
             });
 
+            //Button pour sauvegarder l'image dans le drive
+            //On enregistre cordonnées et titre de l'image (date+heure.jpeg) dans un fichier JSON
+            //Puis l'image dans le drive
             saveBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -1135,6 +1135,7 @@ public class Camera2BasicFragment extends Fragment
 
         }
 
+        //Fonction pour tourner la photo
         public Bitmap rotateBmp(Bitmap bmp){
             Matrix matrix = new Matrix();
             //set image rotation value to 90 degrees in matrix.

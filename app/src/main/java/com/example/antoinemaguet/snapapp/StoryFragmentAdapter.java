@@ -11,22 +11,20 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.List;
-import com.squareup.picasso.Picasso;
 
 
 public class StoryFragmentAdapter extends RecyclerView.Adapter<StoryFragmentAdapter.ViewHolder> {
 
     private List<ListObjectRecyclerView> dataset;
 
-    // Provide a reference to the views for each data item
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView textView;
         private ImageView imageView;
 
         public ViewHolder(View v) {
             super(v);
-            textView = v.findViewById(R.id.mytv);
-            imageView= (ImageView) v.findViewById(R.id.myiv);
+            textView = v.findViewById(R.id.storytext);
+            imageView= (ImageView) v.findViewById(R.id.storyimage);
         }
 
         public void bind(ListObjectRecyclerView mediaObject){
@@ -35,12 +33,10 @@ public class StoryFragmentAdapter extends RecyclerView.Adapter<StoryFragmentAdap
         }
     }
 
-    // Provide a suitable constructor (depends on the kind of dataset)
     public StoryFragmentAdapter(List<ListObjectRecyclerView> dataset) {
         this.dataset = dataset;
     }
 
-    // Create new views (invoked by the layout manager)
     @Override
     public StoryFragmentAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         // create a new view
@@ -48,16 +44,13 @@ public class StoryFragmentAdapter extends RecyclerView.Adapter<StoryFragmentAdap
         return new ViewHolder(v);
     }
 
-    // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        // - get element from your dataset at this position
-        // - replace the contents of the view with that element
+
         ListObjectRecyclerView myObject = dataset.get(position);
         holder.bind(myObject);
     }
 
-    // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
         return dataset.size();

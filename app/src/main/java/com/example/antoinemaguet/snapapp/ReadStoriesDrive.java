@@ -6,17 +6,12 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.location.Location;
-import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.Log;
-
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
@@ -26,7 +21,6 @@ import com.google.android.gms.drive.DriveResourceClient;
 import com.google.android.gms.drive.Metadata;
 import com.google.android.gms.drive.MetadataBuffer;
 import com.google.android.gms.drive.MetadataChangeSet;
-import com.google.android.gms.drive.metadata.CustomPropertyKey;
 import com.google.android.gms.drive.query.Filter;
 import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
@@ -36,11 +30,9 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -63,7 +55,6 @@ public class ReadStoriesDrive{
         this.activity=activity;
         this.context=context;
     }
-    private JSONArray ja = new JSONArray();
     public static List<ListObjectRecyclerView> myDataSet = new ArrayList<>();
 
     private static final int REQUEST_CODE_SIGN_IN = 1;
@@ -73,6 +64,7 @@ public class ReadStoriesDrive{
     public static JSONObject jsonStories;
     public static JSONObject jsonCloseStories;
 
+    //SI pas de client drive on en cree un et on se connecte au drive
     public void signIn() {
         final GoogleSignInClient signInClient = buildGoogleSignInClient();
         signInClient.silentSignIn()
@@ -120,6 +112,7 @@ public class ReadStoriesDrive{
         mDriveResourceClient = Drive.getDriveResourceClient(context, account);
     }
 
+    //recupere le titre des photos a moins de 5 km dans le fichier datas.json
     public void closestStories() {
 
         Query query = new Query.Builder()
@@ -148,7 +141,6 @@ public class ReadStoriesDrive{
                                                     while ((line = reader.readLine()) != null) {
                                                         builder.append(line).append("\n");
                                                     }
-                                                    Log.i("BLABLA", "File Readable" +builder.toString());
                                                     jsonStories = new JSONObject(builder.toString());
                                                     jsonCloseStories = getCloseStories(MapLocationListener.lastLoc,jsonStories);
                                                     loadPictures();
@@ -163,6 +155,7 @@ public class ReadStoriesDrive{
                                                 // Handle failure
                                             }
                                         });
+                                metadataBuffer.release();
 
                             }
                         })
@@ -177,6 +170,7 @@ public class ReadStoriesDrive{
 
     }
 
+    //Cree la liste de photos pour StoryFragment
     private void loadPictures() {
 
         Query query2;
@@ -204,26 +198,19 @@ public class ReadStoriesDrive{
                 throw new RuntimeException(e);
             }
         }
-        Log.i("BLABLAB", "JSON debug "+test);
         query2 = new Query.Builder()
                 .addFilter(test)
                 .build();
 
-
-        // [START query_files]
         Task<MetadataBuffer> queryTask = getDriveResourceClient().query(query2);
-        // [END query_files]
 
-
-        // [START query_results]
         queryTask
                 .addOnSuccessListener(
                         new OnSuccessListener<MetadataBuffer>() {
                             @Override
                             public void onSuccess(MetadataBuffer metadataBufferBis) {
                                 metadataBuffer=metadataBufferBis;
-                                // Handle results...
-                                // [START_EXCLUDE]
+
                                 JSONObject mainObj = new JSONObject();
                                 final BitmapFactory.Options options = new BitmapFactory.Options();
                                 options.inSampleSize = 4;
@@ -231,14 +218,7 @@ public class ReadStoriesDrive{
                                 for (Iterator<Metadata> i = metadataBuffer.iterator(); i.hasNext();) {
                                     Metadata item = i.next();
 
-                                    //get the title
-                                    //final String title = item.getTitle();
-                                    //final String longitude = item.getTitle();
-                                    final String latitude = item.getCustomProperties().get(new CustomPropertyKey("Latitude", CustomPropertyKey.PUBLIC));
-                                    final String longitude = item.getCustomProperties().get(new CustomPropertyKey("Longitude", CustomPropertyKey.PUBLIC));
-
-                                    Log.i("BLABLA","Latitude est :"+latitude);
-                                    //get the description
+                                    //On recupere la description
                                     final String description;
                                     if (item.getDescription() != null) {
                                         description = item.getDescription();
@@ -246,18 +226,8 @@ public class ReadStoriesDrive{
                                     else{
                                         description = "";
                                     }
-                                    try {
-                                        JSONObject jo = new JSONObject();
-                                        jo.put("latitude", latitude);
-                                        jo.put("longitude", longitude);
-                                        jo.put("text", description);
-                                        ja.put(jo);
-                                        mainObj.put("datas", ja);
-                                        Log.i("BLABLA", "json file"+ mainObj.toString() );
-                                    }catch (JSONException e) {
 
-                                    }
-                                    //get the picture
+                                    //on recupere l'image
                                     DriveId mId = item.getDriveId();
                                     DriveFile file = mId.asDriveFile();
 
@@ -269,16 +239,13 @@ public class ReadStoriesDrive{
                                                 public Task<Void> then(@NonNull Task<DriveContents> task) throws Exception {
 
                                                     DriveContents contents = task.getResult();
-                                                    // Process contents...
                                                     InputStream mInputStream = contents.getInputStream();
                                                     Rect tester= new Rect();
                                                     Bitmap bitmap1 = BitmapFactory.decodeStream(mInputStream, null,options);
 
                                                     //add title description image to myDataSet
                                                     myDataSet.add(new ListObjectRecyclerView(description,bitmap1));
-                                                    Log.i("BLABLAB", "JSON debug ");
 
-                                                    Log.i("BLABLA","new object recycler view"+ description);
                                                     Task<Void> discardTask = getDriveResourceClient().discardContents(contents);
                                                     return discardTask;
 
@@ -287,15 +254,13 @@ public class ReadStoriesDrive{
                                             .addOnFailureListener(new OnFailureListener() {
                                                 @Override
                                                 public void onFailure(@NonNull Exception e) {
-                                                    Log.i("BLABLA","faileddddd");
+                                                    Log.i("BLABLA","failed image load");
                                                 }
                                             });
-                                    //metadataBuffer.release();
 
                                 }
-                                //jsonStories=mainObj;
+                                metadataBuffer.release();
 
-                                //metadataBuffer.release();
                             }
                         })
                 .addOnFailureListener(new OnFailureListener() {
@@ -306,9 +271,9 @@ public class ReadStoriesDrive{
 
                     }
                 });
-        // [END query_results]
     }
 
+    //Recupere les stories a moins de 5km
     private JSONObject getCloseStories(Location location, JSONObject jsonStories){
 
 
@@ -331,7 +296,6 @@ public class ReadStoriesDrive{
                     if (distance < 5000) {
                         JSONObject field = arr.getJSONObject(i);
                         ja.put(field);
-                        Log.i("BLABLA", "close debug " + field.get("imageTitle").toString());
                     }
                 }
             }
@@ -347,7 +311,7 @@ public class ReadStoriesDrive{
     }
 
 
-
+    //utilise au debut pour creer le fichier datas.json
     private void createFileInAppFolder() {
 
         final Task<DriveFolder> appFolderTask = getDriveResourceClient().getRootFolder();
@@ -484,7 +448,7 @@ public class ReadStoriesDrive{
                                                 // Handle failure
                                             }
                                         });
-
+                                metadataBuffer.release();
                             }
                         })
                 .addOnFailureListener(activity, new OnFailureListener() {

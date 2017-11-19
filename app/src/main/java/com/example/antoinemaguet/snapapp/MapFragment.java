@@ -1,77 +1,40 @@
 package com.example.antoinemaguet.snapapp;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Rect;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
-import com.example.antoinemaguet.snapapp.Camera2BasicFragment;
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-
-import com.google.android.gms.drive.DriveResourceClient;
-import com.google.android.gms.drive.MetadataBuffer;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationRequest;
-
 import com.mapbox.mapboxsdk.Mapbox;
-import com.mapbox.mapboxsdk.annotations.Icon;
-import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdate;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
-
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 public class MapFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener{
 
     private GoogleApiClient googleApiClient;
     private MapView mapView;
     private LocationRequest locationRequest;
-    private Marker currentPos;
     private Location mLastLocation;
     private static final int REQUEST_LOCATION_PERMISSION = 1;
     private static final String FRAGMENT_DIALOG = "dialog";
-    //private DriveResourceClient mDriveResourceClient;
-   // private JSONObject jsonStories;
-    private Icon icon;
-    private JSONArray ja = new JSONArray();
-    public static List<ListObjectRecyclerView> myDataSet = new ArrayList<>();
-
-    private static final int PERMISSION_REQUEST_CODE = 200;
-    private static final int REQUEST_CODE_SIGN_IN = 1;
-    private MetadataBuffer metadataBuffer;
-
-    public static DriveResourceClient mDriveResourceClient;
     public static JSONObject jsonStories;
-    public static JSONObject jsonCloseStories;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -84,6 +47,8 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
                              Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_map_view, container, false);
+
+        //Create ggogle api client for location services
         googleApiClient
                 = new GoogleApiClient.Builder(getActivity())
                 .addApi(LocationServices.API)
@@ -91,26 +56,31 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
                 .addOnConnectionFailedListener(this)
                 .build();
 
-        ReadStoriesDrive test= new ReadStoriesDrive(getActivity(), getContext());
-        test.signIn();
+        //On se connecte au drive google et on lis les photos à moins de 5km
+        ReadStoriesDrive driveConnect= new ReadStoriesDrive(getActivity(), getContext());
+        driveConnect.signIn();
         return view;
     }
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        //On cree notre mapbox avec les donnes jawg map
+        //besoin dun token mapbox et un token jawg map
         Mapbox.getInstance(getContext(), BuildConfig.MAP_BOX_TOKEN);
         mapView = view.findViewById(R.id.mapView);
         mapView.setStyleUrl("https://tile.jawg.io/jawg-streets.json?access-token=" + BuildConfig.JAWG_API_KEY);
         mapView.onCreate(savedInstanceState);
 
+        //On se connecte pour la localisation
         googleApiClient.connect();
-
+        //On cree une requete
         locationRequest = new LocationRequest()
                 .setInterval(1000)
                 .setPriority(
                         LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
+        //Boutton pour positionner la map sur la position courante
         FloatingActionButton FAB = (FloatingActionButton) view.findViewById(R.id.positionBtn);
         FAB.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -134,9 +104,6 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
                 }
             }
         });
-        Log.i("BLABLA","ViewCreated");
-
-
     }
 
     @Override
@@ -161,24 +128,25 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
     @Override
     public void onConnected(Bundle connectionHint) {
         // Connected to Google Play services!
-        // This is where you will start asking for location
-        // updates.
-        //LocationServices.FusedLocationApi.requestLocationUpdates(
-               // googleApiClient, locationRequest, this);
+
         if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             requestLocationPermission();
             return;
         }
 
-        LocationManager mLocationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
-        MapLocationListener mLocationListener = new MapLocationListener(mapView, currentPos, getActivity(), jsonStories);
+        //Create location listener
+        MapLocationListener mLocationListener = new MapLocationListener(mapView, getActivity(), jsonStories);
 
+        //Start listening for location updates
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 googleApiClient, locationRequest, mLocationListener);
+
+        //REturn last location
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 googleApiClient);
 
+        //Move map to previous location
         if(mLastLocation != null) {
             this.mapView.getMapAsync(new OnMapReadyCallback() {
                 @Override
