@@ -5,29 +5,18 @@
     <string name="Password">Password</string>
 
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="wrongPassword">Wrong Password</string>
     <string name="description_info">Info</string>
     <string name="picture">Picture</string>
     <string name="request_permission">This sample needs camera permission.</string>
     <string name="camera_error">This device doesn\'t support Camera2 API.</string>
     <string name="intro_message">Intro</string>
-    <string name="file_create_error">Error create file</string>
-    <string name="file_created">File created</string>
-    <string name="dialog_message">message</string>
-    <string name="dialog_title">title</string>
-    <string name="emailpassword_title_text">Email and Password</string>
-    <string name="signed_in">Signed In</string>
-    <string name="signed_out">Signed Out</string>
     <string name="hint_email">Email</string>
     <string name="hint_password">Password</string>
     <string name="sign_in">Sign In</string>
     <string name="create_account">Create Account</string>
     <string name="sign_out">Sign Out</string>
     <string name="verify_email">Verify Email</string>
-    <string name="disconnect">Disconnect</string>
-    <string name="auth_failed">authentification failed!</string>
-    <string name="emailpassword_status_fmt">Email User: %1$s (verified: %2$b)</string>
     <string name="loading">Loading…</string>
 
 </resources>

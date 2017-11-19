@@ -14,9 +14,6 @@ public class ListObjectRecyclerView {
         this.text = text;
         this.image = image;
     }
-    public ListObjectRecyclerView(String text) {
-        this.text = text;
-    }
 
     public String getText() {
         return text;
@@ -30,7 +27,4 @@ public class ListObjectRecyclerView {
         this.text = text;
     }
 
-    public void setImagePath(Bitmap image) {
-        this.image = image;
-    }
 }
