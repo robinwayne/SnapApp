@@ -79,6 +79,7 @@ public class StoryFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.listRecyclerView);
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
@@ -90,7 +91,7 @@ public class StoryFragment extends Fragment {
 
 
 
-        StoryFragmentAdapter adapter = new StoryFragmentAdapter(MapFragment.myDataSet);
+        StoryFragmentAdapter adapter = new StoryFragmentAdapter(ReadStoriesDrive.myDataSet);
         recyclerView.setAdapter(adapter);
 
 
